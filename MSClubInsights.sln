@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35707.178 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSClubInsights .API", "MSClubInsights .API\MSClubInsights .API.csproj", "{7FC9ABFC-3DA7-4CB0-97D1-878BDC8E610C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSClubInsights.API", "MSClubInsights .API\MSClubInsights.API.csproj", "{7FC9ABFC-3DA7-4CB0-97D1-878BDC8E610C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSClubInsights.Application", "MSClubInsights.Application\MSClubInsights.Application.csproj", "{93D90469-049E-4161-830A-FCFBFA2F5F82}"
 EndProject
