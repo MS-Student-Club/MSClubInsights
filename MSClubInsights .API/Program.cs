@@ -16,6 +16,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "MS Club Insights API v1"));
 app.UseAuthorization();
 
 app.MapControllers();
