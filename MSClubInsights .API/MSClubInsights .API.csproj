@@ -16,4 +16,10 @@
     <Folder Include="Controllers\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MSClubInsights.Application\MSClubInsights.Application.csproj" />
+    <ProjectReference Include="..\MSClubInsights.Infrastructure\MSClubInsights.Infrastructure.csproj" />
+    <ProjectReference Include="..\MSClubInsights.Shared\MSClubInsights.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -11,4 +11,9 @@
     <Folder Include="Services\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MSClubInsights.Domain\MSClubInsights.Domain.csproj" />
+    <ProjectReference Include="..\MSClubInsights.Shared\MSClubInsights.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

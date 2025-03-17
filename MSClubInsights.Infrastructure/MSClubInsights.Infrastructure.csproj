@@ -11,4 +11,10 @@
     <Folder Include="Persistence\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MSClubInsights.Application\MSClubInsights.Application.csproj" />
+    <ProjectReference Include="..\MSClubInsights.Domain\MSClubInsights.Domain.csproj" />
+    <ProjectReference Include="..\MSClubInsights.Shared\MSClubInsights.Shared.csproj" />
+  </ItemGroup>
+
 </Project>
