@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="RepoInterfaces\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="10.0.0-preview.1.25120.3" />
   </ItemGroup>
 

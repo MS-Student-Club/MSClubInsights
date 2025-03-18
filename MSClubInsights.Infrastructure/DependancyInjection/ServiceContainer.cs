@@ -7,7 +7,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using MSClubInsights.Domain.Entities.Identity;
+using MSClubInsights.Domain.RepoInterfaces;
 using MSClubInsights.Infrastructure.DB;
+using MSClubInsights.Infrastructure.Persistence.Repositories;
 
 namespace MSClubInsights.Infrastructure.DependancyInjection;
 
@@ -56,7 +58,18 @@ public static class ServiceContainer
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!))
             };
         });
-        
+
+        services.AddScoped<ICityRepository , CityRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ITagRepository, TagRepository>();
+        services.AddScoped<IArticleRepository, ArticleRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IArticleTagRepository, ArticleTagRepository>();
+        services.AddScoped<ICommentRepository, CommentRepository>();
+        services.AddScoped<ILikeRepository, LikeRepository>();
+        services.AddScoped<IRatingRepository, RatingRepository>();
+
+
         return services;
     }
 }
