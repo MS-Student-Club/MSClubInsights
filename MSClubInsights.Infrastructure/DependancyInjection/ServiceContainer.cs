@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using MSClubInsights.Application.ServiceInterfaces;
+using MSClubInsights.Application.Services;
 using MSClubInsights.Domain.Entities.Identity;
 using MSClubInsights.Domain.RepoInterfaces;
 using MSClubInsights.Infrastructure.DB;
@@ -69,6 +71,13 @@ public static class ServiceContainer
         services.AddScoped<ILikeRepository, LikeRepository>();
         services.AddScoped<IRatingRepository, RatingRepository>();
 
+        services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<ITagService, TagService>();
+        services.AddScoped<IArticleService, ArticleService>();
+        services.AddScoped<IArticleTagService, ArticleTagService>();
+        services.AddScoped<ICommentService, CommentService>();
+        services.AddScoped<IRatingService, RatingService>();
+        services.AddScoped<ICityService, CityService>();
 
         return services;
     }
