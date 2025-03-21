@@ -40,49 +40,6 @@ namespace MSClubInsights.API.Controllers
             return Ok(_response);
         }
 
-        [HttpGet("{id:int}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<APIResponse>> GetCity(int id)
-        {
-            try
-            {
-                if (id <= 0)
-                {
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "Invalid ID. ID must be greater than zero." };
-                    _response.Data = new List<string> { "No Data Retreived" };
-                    return BadRequest(_response);
-                }
-
-                var city = await _citySevice.GetAsync(u => u.Id == id);
-
-                if (city == null)
-                {
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.NotFound;
-                    _response.ErrorMessages = new List<string> { "No City Found " };
-                    return NotFound(_response);
-                }
-
-                _response.Data = city;
-                _response.IsSuccess = true;
-                _response.StatusCode = HttpStatusCode.OK;
-            }
-            catch (Exception ex)
-            {
-                _response.IsSuccess = false;
-                _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.ErrorMessages = new List<string>()
-                {
-                    ex.ToString()
-                };
-            }
-            return Ok(_response);
-        }
-
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
