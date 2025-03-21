@@ -165,7 +165,7 @@ namespace MSClubInsights_.API.Controllers
                 articleTag.TagId = updateDTO.TagId;
 
                 await _articleTagService.UpdateAsync(articleTag);
-
+                
                 _response.StatusCode = HttpStatusCode.NoContent;
 
                 _response.IsSuccess = true;
