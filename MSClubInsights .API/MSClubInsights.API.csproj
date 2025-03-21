@@ -4,7 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>MSClubInsights_.API</RootNamespace>
+    <RootNamespace>MSClubInsights.API</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,13 +17,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\MSClubInsights.Application\MSClubInsights.Application.csproj" />
     <ProjectReference Include="..\MSClubInsights.Infrastructure\MSClubInsights.Infrastructure.csproj" />
     <ProjectReference Include="..\MSClubInsights.Shared\MSClubInsights.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Controllers\" />
   </ItemGroup>
 
 </Project>

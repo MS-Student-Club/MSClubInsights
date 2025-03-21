@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace MSClubInsights_.API.Responses
+namespace MSClubInsights.API.Responses
 {
     public class APIResponse
     {
