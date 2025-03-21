@@ -78,6 +78,7 @@ public static class ServiceContainer
         services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<IRatingService, RatingService>();
         services.AddScoped<ICityService, CityService>();
+        services.AddScoped<ILikeService, LikeService>();
 
         return services;
     }
