@@ -26,13 +26,13 @@ namespace MSClubInsights.API.Controllers
             _db = db;
         }
 
-        [HttpGet]
+        [HttpGet("{Article_Id:int}", Name = "GetComments")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<APIResponse>> GetComments()
+        public async Task<ActionResult<APIResponse>> GetComments(int Article_Id)
         {
             try
             {
-                _response.Data = await _commentService.GetAllAsync();
+                _response.Data = await _commentService.GetAllAsync(u => u.ArticleId == Article_Id);
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
             }
@@ -45,15 +45,15 @@ namespace MSClubInsights.API.Controllers
             return Ok(_response);
         }
 
-        [HttpGet("{id:int}")]
+        [HttpGet("comment/{Comment_Id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<APIResponse>> GetComment(int id)
+        public async Task<ActionResult<APIResponse>> GetComment(int Comment_Id)
         {
             try
             {
-                if (id <= 0)
+                if (Comment_Id <= 0)
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
@@ -62,7 +62,7 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                var tag = await _commentService.GetAsync(u => u.Id == id);
+                var tag = await _commentService.GetAsync(u => u.Id == Comment_Id);
 
                 if (tag == null)
                 {

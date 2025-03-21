@@ -27,13 +27,13 @@ namespace MSClubInsights.API.Controllers
             _db = db;
         }
 
-        [HttpGet]
+        [HttpGet("{Article_Id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<APIResponse>> GetRatings()
+        public async Task<ActionResult<APIResponse>> GetRatings(int Article_Id)
         {
             try
             {
-                _response.Data = await _ratingService.GetAllAsync();
+                _response.Data = await _ratingService.GetAllAsync(u => u.ArticleId == Article_Id);
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
             }
@@ -46,15 +46,15 @@ namespace MSClubInsights.API.Controllers
             return Ok(_response);
         }
 
-        [HttpGet("{id:int}")]
+        [HttpGet("rating/{Rating_Id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<APIResponse>> GetRating(int id)
+        public async Task<ActionResult<APIResponse>> GetRating(int Rating_Id)
         {
             try
             {
-                if (id <= 0)
+                if (Rating_Id <= 0)
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
@@ -63,7 +63,7 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                var rating = await _ratingService.GetAsync(u => u.Id == id);
+                var rating = await _ratingService.GetAsync(u => u.Id == Rating_Id);
 
                 if (rating == null)
                 {

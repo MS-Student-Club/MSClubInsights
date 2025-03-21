@@ -23,13 +23,13 @@ namespace MSClubInsights_.API.Controllers
 
         }
 
-        [HttpGet]
+        [HttpGet("{Article_Id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<APIResponse>> GetArticleTags()
+        public async Task<ActionResult<APIResponse>> GetArticleTags(int Article_Id)
         {
             try
             {
-                _response.Data = await _articleTagService.GetAllAsync();
+                _response.Data = await _articleTagService.GetAllAsync(u => u.ArticleId == Article_Id);
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
             }
