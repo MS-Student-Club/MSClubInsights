@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MSClubInsights.Shared.DTOs.Article
 {
-    public class ArticleTagUpdateDTO
+    public class ArticleUpdateDTO
     {
         [Required]
         public string ImageUrl { get; set; }

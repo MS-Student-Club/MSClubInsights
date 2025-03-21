@@ -137,7 +137,7 @@ namespace MSClubInsights_.API.Controllers
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<APIResponse>> UpdateArticle(int id , [FromBody] ArticleCreateDTO updateDTO)
+        public async Task<ActionResult<APIResponse>> UpdateArticle(int id , [FromBody] ArticleUpdateDTO updateDTO)
         {
             try
             {
