@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using MSClubInsights.Domain.Entities.Identity;
 using MSClubInsights.Domain.RepoInterfaces;
 using MSClubInsights.Infrastructure.DB;
+using MSClubInsights.Shared.Utitlites;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,10 +16,12 @@ namespace MSClubInsights.Infrastructure.Persistence.Repositories
     public class UserRepository : IUserRepository
     {
         private readonly UserManager<AppUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public UserRepository(UserManager<AppUser> userManager)
+        public UserRepository(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         public async Task<AppUser> GetUserByEmail(string email)
@@ -49,7 +52,17 @@ namespace MSClubInsights.Infrastructure.Persistence.Repositories
 
         public async Task<IdentityResult> CreateUser(AppUser user, string password)
         {
+            if (!_roleManager.RoleExistsAsync(SD.CoreTeam).GetAwaiter().GetResult())
+            {
+                await _roleManager.CreateAsync(new IdentityRole(SD.CoreTeam));
+                await _roleManager.CreateAsync(new IdentityRole(SD.TechMember));
+                await _roleManager.CreateAsync(new IdentityRole(SD.RegMember));
+                await _roleManager.CreateAsync(new IdentityRole(SD.SysAdmin));
+            }
+
             await _userManager.CreateAsync(user, password);
+
+            await _userManager.AddToRoleAsync(user, SD.RegMember);
 
             return IdentityResult.Success;
         }
