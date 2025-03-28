@@ -4,8 +4,18 @@ namespace MSClubInsights.Domain.Entities.Identity;
 
 public class AppUser : IdentityUser
 {
-    public string PhoneNumber { get; set; } = string.Empty;
+    public string FirstName { get; set; }
+
+    public string LastName { get; set; }
+
+    public bool gender { get; set; }
+
+    public DateOnly DateOfBirth { get; set; }
+
+    public string PhoneNumber { get; set; }
     
-    // TODO: Add City_ID HERE
-    
+    public int CityId { get; set; }
+
+    public City City { get; set; }
+
 }
