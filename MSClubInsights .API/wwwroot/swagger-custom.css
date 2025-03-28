@@ -1,0 +1,23 @@
+﻿/* Remove default Swagger logo */
+.swagger-ui .topbar .link img {
+    display: none;
+}
+
+/* Add a custom logo */
+.swagger-ui .topbar::before {
+    content: "";
+    display: block;
+    width: 260px; /* Adjust width */
+    height: 60px; /* Adjust height */
+    background-image: url('/logo.png'); /* Update with your image path */
+    background-size: 70px 70px;
+    background-repeat: no-repeat;
+    margin-left: 20px; /* Adjust position */
+    margin-top:-19px;
+    margin-bottom:-24px
+}
+
+
+.swagger-ui .topbar .link {
+    display: none !important; /* Hides the Swagger logo */
+}
