@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MSClubInsights.Domain.Entities.Identity;
 
@@ -13,8 +15,9 @@ public class AppUser : IdentityUser
     public DateOnly DateOfBirth { get; set; }
 
     public string PhoneNumber { get; set; }
-    
-    public int CityId { get; set; }
+
+    [ForeignKey("City")]
+    public int? CityId { get; set; }
 
     public City City { get; set; }
 
