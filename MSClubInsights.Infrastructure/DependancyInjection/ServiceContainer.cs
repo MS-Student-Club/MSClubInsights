@@ -70,6 +70,7 @@ public static class ServiceContainer
         services.AddScoped<ICommentRepository, CommentRepository>();
         services.AddScoped<ILikeRepository, LikeRepository>();
         services.AddScoped<IRatingRepository, RatingRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
 
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<ITagService, TagService>();
@@ -79,6 +80,9 @@ public static class ServiceContainer
         services.AddScoped<IRatingService, RatingService>();
         services.AddScoped<ICityService, CityService>();
         services.AddScoped<ILikeService, LikeService>();
+        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IAuthService, AuthService>();
 
         return services;
     }
