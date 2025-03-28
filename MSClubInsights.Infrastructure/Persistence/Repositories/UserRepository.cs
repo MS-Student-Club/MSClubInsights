@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MSClubInsights.Domain.Entities.Identity;
+using MSClubInsights.Domain.RepoInterfaces;
 using MSClubInsights.Infrastructure.DB;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace MSClubInsights.Infrastructure.Persistence.Repositories
 {
-    public class UserRepository
+    public class UserRepository : IUserRepository
     {
         private readonly UserManager<AppUser> _userManager;
 
@@ -30,11 +31,6 @@ namespace MSClubInsights.Infrastructure.Persistence.Repositories
             return await _userManager.FindByIdAsync(id);
         }
 
-        public async Task CreateUser(AppUser user , string password)
-        {
-            await _userManager.CreateAsync(user , password);
-        }
-
         public async Task<bool> CheckPassword(AppUser user, string password)
         {
             return await _userManager.CheckPasswordAsync(user, password);
@@ -43,6 +39,19 @@ namespace MSClubInsights.Infrastructure.Persistence.Repositories
         public async Task<IList<string>> GetUserRoles(AppUser user)
         {
             return await _userManager.GetRolesAsync(user);
+        }
+
+        public async Task<AppUser> GetUserByUserName(string userName)
+        {
+            var user = await _userManager.FindByNameAsync(userName);
+            return user;
+        }
+
+        public async Task<IdentityResult> CreateUser(AppUser user, string password)
+        {
+            await _userManager.CreateAsync(user, password);
+
+            return IdentityResult.Success;
         }
     }
 }

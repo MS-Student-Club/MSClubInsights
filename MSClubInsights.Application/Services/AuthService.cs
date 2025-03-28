@@ -11,9 +11,9 @@ namespace MSClubInsights.Application.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly iUserRepository _userRepository;
+        private readonly IUserRepository _userRepository;
         private readonly ITokenService _tokenService;
-        public AuthService(iUserRepository userRepository , ITokenService tokenService)
+        public AuthService(IUserRepository userRepository , ITokenService tokenService)
         {
            _userRepository = userRepository;
            _tokenService = tokenService;

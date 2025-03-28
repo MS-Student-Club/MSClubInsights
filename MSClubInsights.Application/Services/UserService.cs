@@ -12,10 +12,10 @@ namespace MSClubInsights.Application.Services
 {
     public class UserService : IUserService
     {
-        private readonly iUserRepository _userRepository;
+        private readonly IUserRepository _userRepository;
         public readonly ITokenService _tokenService;
 
-        public UserService(iUserRepository userRepository, ITokenService tokenService)
+        public UserService(IUserRepository userRepository, ITokenService tokenService)
         {
             _userRepository = userRepository;
             _tokenService = tokenService;

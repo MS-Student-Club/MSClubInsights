@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MSClubInsights.Domain.RepoInterfaces
 {
-    public interface iUserRepository
+    public interface IUserRepository
     {
         Task<AppUser> GetUserByEmail(string email);
 
