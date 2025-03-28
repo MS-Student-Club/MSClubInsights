@@ -55,9 +55,9 @@ public static class ServiceContainer
                 ValidateIssuerSigningKey = true,
                 ValidateLifetime = true,
                 RequireExpirationTime = true,
-                ValidIssuer = config["Jwt:Issuer"],
-                ValidAudience = config["Jwt:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!))
+                ValidIssuer = config["JWT:Issuer"],
+                ValidAudience = config["JWT:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWT:Key"]!))
             };
         });
 
