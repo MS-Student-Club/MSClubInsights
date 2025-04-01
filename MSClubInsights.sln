@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178 d17.12
+VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSClubInsights.API", "MSClubInsights .API\MSClubInsights.API.csproj", "{7FC9ABFC-3DA7-4CB0-97D1-878BDC8E610C}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSClubInsights.Infrastructure", "MSClubInsights.Infrastructure\MSClubInsights.Infrastructure.csproj", "{B6AF21B8-5166-46E1-BF3A-9E193F825174}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSClubInsights.Shared", "MSClubInsights.Shared\MSClubInsights.Shared.csproj", "{DEE44B95-B1DE-4557-A54E-8983CF483994}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSClubInsights.Test", "MSClubInsights.Test\MSClubInsights.Test.csproj", "{04197BA3-9CF9-404B-9D34-EC37ADD8670F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{DEE44B95-B1DE-4557-A54E-8983CF483994}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEE44B95-B1DE-4557-A54E-8983CF483994}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DEE44B95-B1DE-4557-A54E-8983CF483994}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04197BA3-9CF9-404B-9D34-EC37ADD8670F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04197BA3-9CF9-404B-9D34-EC37ADD8670F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04197BA3-9CF9-404B-9D34-EC37ADD8670F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04197BA3-9CF9-404B-9D34-EC37ADD8670F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
