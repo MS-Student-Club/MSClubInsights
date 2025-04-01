@@ -1,7 +1,11 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using EntityFramework.Exceptions.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -59,6 +63,42 @@ public static class ServiceContainer
                 ValidAudience = config["JWT:Audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWT:Key"]!))
             };
+        });
+
+        services.AddRateLimiter(rateLimiterOptions =>
+        {
+            rateLimiterOptions.AddFixedWindowLimiter("Auth", o =>
+            {
+                o.PermitLimit = 5;
+                o.Window = TimeSpan.FromMinutes(1);
+                o.QueueLimit = 1;
+            });
+
+            rateLimiterOptions.AddSlidingWindowLimiter("Public", o =>
+            {
+                o.PermitLimit = 100;
+                o.Window = TimeSpan.FromMinutes(1);
+                o.SegmentsPerWindow= 5;
+                o.QueueLimit = 5;
+            });
+
+            rateLimiterOptions.AddTokenBucketLimiter("Modify", o =>
+            {
+                o.TokenLimit = 20;
+                o.ReplenishmentPeriod = TimeSpan.FromSeconds(3);
+                o.TokensPerPeriod = 1;
+                o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                o.QueueLimit = 5;
+            });
+
+            rateLimiterOptions.AddFixedWindowLimiter("Default", o =>
+            {
+                o.PermitLimit = 50;
+                o.Window = TimeSpan.FromMinutes(1);
+                o.QueueLimit = 1;
+            });
+
+            rateLimiterOptions.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
         });
 
         services.AddScoped<ICityRepository , CityRepository>();

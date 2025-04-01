@@ -17,7 +17,7 @@ public class AppUser : IdentityUser
     public string PhoneNumber { get; set; }
 
     [ForeignKey("City")]
-    public int? CityId { get; set; }
+    public int CityId { get; set; }
 
     public City City { get; set; }
 

@@ -6,6 +6,7 @@ using System.Net;
 using MSClubInsights.Shared.DTOs.Article;
 using MSClubInsights.Infrastructure.DB;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace MSClubInsights_.API.Controllers
 {
@@ -27,6 +28,7 @@ namespace MSClubInsights_.API.Controllers
         }
 
         [HttpGet]
+        [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<APIResponse>> GetArticles()
         {
@@ -49,6 +51,7 @@ namespace MSClubInsights_.API.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -92,6 +95,7 @@ namespace MSClubInsights_.API.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -135,6 +139,7 @@ namespace MSClubInsights_.API.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APIResponse>> UpdateArticle(int id , [FromBody] ArticleUpdateDTO updateDTO)
@@ -202,6 +207,7 @@ namespace MSClubInsights_.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

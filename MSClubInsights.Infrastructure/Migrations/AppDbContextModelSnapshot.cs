@@ -59,7 +59,7 @@ namespace MSClubInsights.Infrastructure.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("articles");
+                    b.ToTable("articles", (string)null);
                 });
 
             modelBuilder.Entity("MSClubInsights.Domain.Entities.ArticleTag", b =>
@@ -82,7 +82,7 @@ namespace MSClubInsights.Infrastructure.Migrations
 
                     b.HasIndex("TagId");
 
-                    b.ToTable("articlesTags");
+                    b.ToTable("articlesTags", (string)null);
                 });
 
             modelBuilder.Entity("MSClubInsights.Domain.Entities.Category", b =>
@@ -100,7 +100,7 @@ namespace MSClubInsights.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("categories");
+                    b.ToTable("categories", (string)null);
                 });
 
             modelBuilder.Entity("MSClubInsights.Domain.Entities.City", b =>
@@ -118,7 +118,7 @@ namespace MSClubInsights.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("cities");
+                    b.ToTable("cities", (string)null);
                 });
 
             modelBuilder.Entity("MSClubInsights.Domain.Entities.Comment", b =>
@@ -150,7 +150,7 @@ namespace MSClubInsights.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("comments");
+                    b.ToTable("comments", (string)null);
                 });
 
             modelBuilder.Entity("MSClubInsights.Domain.Entities.Identity.AppUser", b =>
@@ -259,7 +259,7 @@ namespace MSClubInsights.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("likes");
+                    b.ToTable("likes", (string)null);
                 });
 
             modelBuilder.Entity("MSClubInsights.Domain.Entities.Rating", b =>
@@ -286,7 +286,7 @@ namespace MSClubInsights.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ratings");
+                    b.ToTable("ratings", (string)null);
                 });
 
             modelBuilder.Entity("MSClubInsights.Domain.Entities.Tag", b =>
@@ -304,7 +304,7 @@ namespace MSClubInsights.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("tags");
+                    b.ToTable("tags", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

@@ -6,6 +6,7 @@ using System.Net;
 using MSClubInsights.Shared.DTOs.ArticleTag;
 using MSClubInsights.Infrastructure.DB;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace MSClubInsights_.API.Controllers
 {
@@ -24,6 +25,7 @@ namespace MSClubInsights_.API.Controllers
         }
 
         [HttpGet("{Article_Id:int}")]
+        [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<APIResponse>> GetArticleTags(int Article_Id)
         {
@@ -46,6 +48,7 @@ namespace MSClubInsights_.API.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -84,6 +87,7 @@ namespace MSClubInsights_.API.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APIResponse>> UpdateArticleTag(int id , [FromBody] ArticleTagUpdateDTO updateDTO)
@@ -146,6 +150,7 @@ namespace MSClubInsights_.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

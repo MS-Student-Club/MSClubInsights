@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using MSClubInsights.API.Responses;
 using MSClubInsights.Application.ServiceInterfaces;
 using MSClubInsights.Domain.Entities;
@@ -22,6 +23,7 @@ namespace MSClubInsights.API.Controllers
         }
 
         [HttpGet]
+        [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<APIResponse>> GetCategories()
         {
@@ -41,6 +43,7 @@ namespace MSClubInsights.API.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -84,6 +87,7 @@ namespace MSClubInsights.API.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -120,6 +124,7 @@ namespace MSClubInsights.API.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APIResponse>> UpdateCategory(int id, [FromBody] CategoryUpdateDTO updateDTO)
@@ -181,6 +186,7 @@ namespace MSClubInsights.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

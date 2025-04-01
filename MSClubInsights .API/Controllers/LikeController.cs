@@ -7,6 +7,7 @@ using MSClubInsights.Shared.DTOs.Article;
 using MSClubInsights.Infrastructure.DB;
 using Microsoft.EntityFrameworkCore;
 using MSClubInsights.Shared.DTOs.Like;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace MSClubInsights_.API.Controllers
 {
@@ -26,6 +27,7 @@ namespace MSClubInsights_.API.Controllers
         }
 
         [HttpGet("{Article_Id:int}")]
+        [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<APIResponse>> GetLikes(int Article_Id)
         {
@@ -52,6 +54,7 @@ namespace MSClubInsights_.API.Controllers
         }
 
         [HttpGet("like/{like_id:int}")]
+        [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -95,6 +98,7 @@ namespace MSClubInsights_.API.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -135,6 +139,7 @@ namespace MSClubInsights_.API.Controllers
 
        
         [HttpDelete("{id:int}")]
+        [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

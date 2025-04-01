@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using MSClubInsights.API.Responses;
 using MSClubInsights.Application.ServiceInterfaces;
@@ -28,6 +29,7 @@ namespace MSClubInsights.API.Controllers
         }
 
         [HttpGet("{Article_Id:int}")]
+        [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<APIResponse>> GetRatings(int Article_Id)
         {
@@ -47,6 +49,7 @@ namespace MSClubInsights.API.Controllers
         }
 
         [HttpGet("rating/{Rating_Id:int}")]
+        [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -90,6 +93,7 @@ namespace MSClubInsights.API.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -130,6 +134,7 @@ namespace MSClubInsights.API.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APIResponse>> UpdateRating(int id, [FromBody] RatingUpdateDTO updateDTO)
@@ -192,6 +197,7 @@ namespace MSClubInsights.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
