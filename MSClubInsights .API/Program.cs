@@ -14,35 +14,61 @@ builder.Services.AddInfrastructureServices(builder.Configuration);
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen(c =>
+builder.Services.AddSwaggerGen(options =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
     {
-        Title = "My Custom API", // ✅ This changes the main API title in Swagger UI
-        Version = "v1",
-        Description = "A detailed API documentation."
+        Title = "MS Club Insights API ",
+        Description = "A RESTful API to access insights and data related to Microsoft Student Club activities, events, and engagement.",
+        Version = "v1"
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n" +
+                       "Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\n" +
+                       "Example: \"Bearer 12345abcdef\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Scheme = "Bearer",
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                },
+                Scheme = "oauth2",
+                Name = "Bearer",
+                In = ParameterLocation.Header,
+            },
+            new List<string>()
+        }
     });
 });
+
 var app = builder.Build();
 
-
-    app.MapOpenApi();
+app.UseSwagger();
+app.UseSwaggerUI(o => {
+    o.DocumentTitle = "MS Club Insights API";
+    o.HeadContent = "<style>.swagger-ui .topbar { background-color: #5298DF; }</style>"; // Changes the header color
+    o.InjectStylesheet("/swagger-custom.css"); // Inject custom CSS
+    o.SwaggerEndpoint("/swagger/v1/swagger.json", "MS Club Insights API v1");
+    o.RoutePrefix = string.Empty;
+});
 
 
 app.UseHttpsRedirection();
 app.UseStaticFiles(); // Enables serving static files from wwwroot
 
-app.UseSwaggerUI(o => 
-{
-  o.SwaggerEndpoint("/openapi/v1.json", "MS Club Insights API v1");
-  o.DocumentTitle = "MS Club Insights API";
-  o.HeadContent = "<style>.swagger-ui .topbar { background-color: #5298DF; }</style>"; // Changes the header color
-  o.InjectStylesheet("/swagger-custom.css"); // Inject custom CSS
-
-});
 
 
 using (var scope = app.Services.CreateScope())
