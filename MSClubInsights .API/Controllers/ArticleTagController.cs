@@ -7,6 +7,8 @@ using MSClubInsights.Shared.DTOs.ArticleTag;
 using MSClubInsights.Infrastructure.DB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Authorization;
+using MSClubInsights.Shared.Utitlites;
 
 namespace MSClubInsights_.API.Controllers
 {
@@ -48,6 +50,7 @@ namespace MSClubInsights_.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
         [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -87,6 +90,7 @@ namespace MSClubInsights_.API.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
         [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -150,6 +154,7 @@ namespace MSClubInsights_.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
         [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
