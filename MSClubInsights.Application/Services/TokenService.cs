@@ -34,12 +34,15 @@ namespace MSClubInsights.Application.Services
             {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(JwtRegisteredClaimNames.Aud, _config["JWT:Audience"]),
+            new Claim(JwtRegisteredClaimNames.Iss, _config["JWT:Issuer"]),
            };
 
             var roles = await _userRepository.GetUserRoles(user);
 
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
+           
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
