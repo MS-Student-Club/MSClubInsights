@@ -67,39 +67,53 @@ public static class ServiceContainer
 
         services.AddRateLimiter(rateLimiterOptions =>
         {
-            rateLimiterOptions.AddFixedWindowLimiter("Auth", o =>
-            {
-                o.PermitLimit = 5;
-                o.Window = TimeSpan.FromMinutes(1);
-                o.QueueLimit = 1;
-            });
+            // Policy for Auth using IP-based fixed window limiting
+            rateLimiterOptions.AddPolicy("Auth", httpContext => RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: httpContext.Connection.RemoteIpAddress?.ToString(),
+                factory: (partitionKey) => new FixedWindowRateLimiterOptions()
+                {
+                    PermitLimit = 5,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 1
+                }));
 
-            rateLimiterOptions.AddSlidingWindowLimiter("Public", o =>
-            {
-                o.PermitLimit = 100;
-                o.Window = TimeSpan.FromMinutes(1);
-                o.SegmentsPerWindow= 5;
-                o.QueueLimit = 5;
-            });
+            // Policy for Public using IP-based sliding window limiting
+            rateLimiterOptions.AddPolicy("Public", httpContext => RateLimitPartition.GetSlidingWindowLimiter(
+                partitionKey: httpContext.Connection.RemoteIpAddress?.ToString(),
+                factory: (partitionKey) => new SlidingWindowRateLimiterOptions()
+                {
+                    PermitLimit = 100,
+                    Window = TimeSpan.FromMinutes(1),
+                    SegmentsPerWindow = 5,
+                    QueueLimit = 5
+                }));
 
-            rateLimiterOptions.AddTokenBucketLimiter("Modify", o =>
-            {
-                o.TokenLimit = 20;
-                o.ReplenishmentPeriod = TimeSpan.FromSeconds(3);
-                o.TokensPerPeriod = 1;
-                o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                o.QueueLimit = 5;
-            });
+            // Policy for Modify using IP-based token bucket limiting
+            rateLimiterOptions.AddPolicy("Modify", httpContext => RateLimitPartition.GetTokenBucketLimiter(
+                partitionKey: httpContext.Connection.RemoteIpAddress?.ToString(),
+                factory: (partitionKey) => new TokenBucketRateLimiterOptions()
+                {
+                    TokenLimit = 20,
+                    ReplenishmentPeriod = TimeSpan.FromSeconds(3),
+                    TokensPerPeriod = 1,
+                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                    QueueLimit = 5
+                }));
 
-            rateLimiterOptions.AddFixedWindowLimiter("Default", o =>
-            {
-                o.PermitLimit = 50;
-                o.Window = TimeSpan.FromMinutes(1);
-                o.QueueLimit = 1;
-            });
+            // Default fallback policy using IP-based fixed window limiting
+            rateLimiterOptions.AddPolicy("Default", httpContext => RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: httpContext.Connection.RemoteIpAddress?.ToString(),
+                factory: (partitionKey) => new FixedWindowRateLimiterOptions()
+                {
+                    PermitLimit = 50,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 1
+                }));
 
+            // Global rejection status code for rate-limited requests
             rateLimiterOptions.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
         });
+
 
         services.AddScoped<ICityRepository , CityRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
