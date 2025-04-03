@@ -15,6 +15,7 @@ using MSClubInsights.Application.Services;
 using MSClubInsights.Domain.Entities.Identity;
 using MSClubInsights.Domain.RepoInterfaces;
 using MSClubInsights.Infrastructure.DB;
+using MSClubInsights.Infrastructure.DBInitializer;
 using MSClubInsights.Infrastructure.Persistence.Repositories;
 
 namespace MSClubInsights.Infrastructure.DependancyInjection;
@@ -137,6 +138,10 @@ public static class ServiceContainer
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthService, AuthService>();
 
+        services.AddScoped<IDBInitializer, DBInitializer.DBInitializer>();
+
+
         return services;
+  
     }
 }

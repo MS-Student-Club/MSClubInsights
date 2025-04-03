@@ -6,6 +6,7 @@ using MSClubInsights.API;
 using MSClubInsights.Domain.Entities.Identity;
 using MSClubInsights.Infrastructure.DependancyInjection;
 using AutoMapper;
+using MSClubInsights.Infrastructure.DBInitializer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -97,7 +98,15 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
 app.MapControllers();
-
+SeedDatabase();
 app.Run();
 
 
+void SeedDatabase()
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbInitializer = scope.ServiceProvider.GetRequiredService<IDBInitializer>();
+        dbInitializer.Initialize();
+    }
+}

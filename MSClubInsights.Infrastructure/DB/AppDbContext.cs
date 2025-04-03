@@ -12,6 +12,7 @@ public class AppDbContext : IdentityDbContext<AppUser> // Adding Identity Tables
         
     }
     
+    public DbSet<AppUser> users { get; set; }
     public DbSet<Category> categories { get; set; }
 
     public DbSet<Tag> tags { get; set; }
