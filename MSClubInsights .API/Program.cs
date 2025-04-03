@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using MSClubInsights.Domain.Entities.Identity;
@@ -20,9 +21,9 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
     {
-        Title = "MS Club Insights API ",
+        Title = "MS Club Insights API v1",
         Description = "A RESTful API to access insights and data related to Microsoft Student Club activities, events, and engagement.",
-        Version = "v1"
+        Version = "v.1.0 "
     });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -52,6 +53,17 @@ builder.Services.AddSwaggerGen(options =>
             new List<string>()
         }
     });
+});
+
+builder.Services.AddApiVersioning(o =>
+{
+    o.AssumeDefaultVersionWhenUnspecified = true;
+    o.DefaultApiVersion = new ApiVersion(1, 0);
+    o.ReportApiVersions = true;
+}).AddApiExplorer(o =>
+{
+    o.GroupNameFormat = "'v'VVV";
+    o.SubstituteApiVersionInUrl = true;
 });
 
 var app = builder.Build();
