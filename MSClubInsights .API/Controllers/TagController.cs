@@ -28,6 +28,11 @@ namespace MSClubInsights.API.Controllers
         [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
         [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<APIResponse>> GetTags()
         {
             try
@@ -35,14 +40,22 @@ namespace MSClubInsights.API.Controllers
                 _response.Data = await _tagService.GetAllAsync();
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
+                return Ok(_response);
+
             }
             catch (Exception ex)
             {
                 _response.IsSuccess = false;
+
+                _response.ErrorMessages = new List<string>()
+                {
+                    ex.ToString()
+                };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.ErrorMessages.Add(ex.Message);
+                _response.Data = null;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
-            return Ok(_response);
         }
 
         [HttpPost]
@@ -50,6 +63,8 @@ namespace MSClubInsights.API.Controllers
         [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<APIResponse>> CreateTag([FromBody] TagCreateDTO createDTO)
         {
@@ -73,21 +88,35 @@ namespace MSClubInsights.API.Controllers
                 _response.Data = tag;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.Created;
+                _response.ErrorMessages = null;
+
+                return StatusCode(StatusCodes.Status201Created, _response);
             }
             catch (Exception ex)
             {
                 _response.IsSuccess = false;
+
+                _response.ErrorMessages = new List<string>()
+                {
+                    ex.ToString()
+                };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.ErrorMessages = new List<string>() { ex.Message };
+                _response.Data = null;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
+
             }
-            return StatusCode(StatusCodes.Status201Created, _response);
         }
 
         [HttpPut("{id:int}")]
         [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
         [EnableRateLimiting("Modify")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<APIResponse>> UpdateTag(int id, [FromBody] TagUpdateDTO updateDTO)
         {
             try
@@ -116,9 +145,21 @@ namespace MSClubInsights.API.Controllers
                     {
                         "Invalid ID. ID must be greater than zero."
                     };
+                    return BadRequest(_response);
                 }
 
                 Tag tag = await _tagService.GetAsync(u => u.Id == id);
+
+                if (tag == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "Tag not found"
+                    };
+                    return NotFound(_response);
+                }
 
                 tag.Name = updateDTO.Name;
 
@@ -130,28 +171,34 @@ namespace MSClubInsights.API.Controllers
 
                 _response.Data = tag;
 
-                return StatusCode(StatusCodes.Status204NoContent, _response);
+                return Ok( _response);
 
 
             }
             catch (Exception ex)
             {
                 _response.IsSuccess = false;
+
                 _response.ErrorMessages = new List<string>()
                 {
                     ex.ToString()
                 };
-            }
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.Data = null;
 
-            return _response;
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
+            }
         }
 
         [HttpDelete("{id:int}")]
         [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
         [EnableRateLimiting("Modify")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<APIResponse>> DeleteTag(int id)
         {
             try
@@ -183,11 +230,7 @@ namespace MSClubInsights.API.Controllers
 
                 await _tagService.DeleteAsync(tag);
 
-                _response.StatusCode = HttpStatusCode.NoContent;
-
-                _response.IsSuccess = true;
-
-                return Ok(_response);
+                return NoContent();
             }
             catch (Exception ex)
             {
@@ -197,9 +240,11 @@ namespace MSClubInsights.API.Controllers
                 {
                     ex.ToString()
                 };
-            }
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.Data = null;
 
-            return _response;
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
+            }
 
         }
 

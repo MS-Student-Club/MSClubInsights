@@ -10,6 +10,8 @@ using MSClubInsights.Shared.DTOs.Comment;
 using MSClubInsights.Shared.DTOs.Tag;
 using MSClubInsights.Shared.Utitlites;
 using System.Net;
+using System.Security.Claims;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace MSClubInsights.API.Controllers
 {
@@ -32,28 +34,65 @@ namespace MSClubInsights.API.Controllers
         [HttpGet("{Article_Id:int}", Name = "GetComments")]
         [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<APIResponse>> GetComments(int Article_Id)
         {
             try
             {
-                _response.Data = await _commentService.GetAllAsync(u => u.ArticleId == Article_Id);
+                if (Article_Id <= 0)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages = new List<string> { "Invalid ID. ID must be greater than zero." };
+                    _response.Data = new List<string> { "No Data Retreived" };
+                    return BadRequest(_response);
+                }
+
+                var comments = await _commentService.GetAllAsync(u => u.ArticleId == Article_Id);
+
+                if (comments == null)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.ErrorMessages = new List<string> { "No Article Found " };
+                    return NotFound(_response);
+                }
+
+                _response.Data = comments;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
+
+                return Ok(_response);
+
             }
             catch (Exception ex)
             {
                 _response.IsSuccess = false;
+
+                _response.ErrorMessages = new List<string>()
+                {
+                    ex.ToString()
+                };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.ErrorMessages.Add(ex.Message);
+                _response.Data = null;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
+
             }
-            return Ok(_response);
         }
 
         [HttpGet("comment/{Comment_Id:int}")]
         [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<APIResponse>> GetComment(int Comment_Id)
         {
             try
@@ -80,17 +119,24 @@ namespace MSClubInsights.API.Controllers
                 _response.Data = tag;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
+
+                return Ok(_response);
+
             }
             catch (Exception ex)
             {
                 _response.IsSuccess = false;
-                _response.StatusCode = HttpStatusCode.InternalServerError;
+
                 _response.ErrorMessages = new List<string>()
                 {
                     ex.ToString()
                 };
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.Data = null;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
+
             }
-            return Ok(_response);
         }
 
         [HttpPost]
@@ -98,6 +144,8 @@ namespace MSClubInsights.API.Controllers
         [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<APIResponse>> CreateComment([FromBody] CommentCreateDTO createDTO)
         {
@@ -111,36 +159,44 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                var user = await _db.Users.OrderBy(u => u.Id).FirstOrDefaultAsync();
+                var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
                 Comment comment = new()
                 {
                     Content = createDTO.Content,
                     ArticleId = createDTO.ArticleId,
                     Date = DateTime.Now,
-                    UserId = user.Id
+                    UserId = userId
                 };
 
                 await _commentService.AddAsync(comment);
 
-                _response.Data = comment;
-                _response.IsSuccess = true;
-                _response.StatusCode = HttpStatusCode.Created;
+                return CreatedAtAction(nameof(GetComment), new { id = comment.Id }, comment);
             }
             catch (Exception ex)
             {
                 _response.IsSuccess = false;
+
+                _response.ErrorMessages = new List<string>()
+                {
+                    ex.ToString()
+                };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.ErrorMessages = new List<string>() { ex.Message };
+                _response.Data = null;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
-            return StatusCode(StatusCodes.Status201Created, _response);
         }
 
         [HttpPut("{id:int}")]
         [Authorize]
         [EnableRateLimiting("Modify")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<APIResponse>> UpdateComment(int id, [FromBody] CommentUpdateDTO updateDTO)
         {
             try
@@ -169,14 +225,27 @@ namespace MSClubInsights.API.Controllers
                     {
                         "Invalid ID. ID must be greater than zero."
                     };
-                }
-                var user = await _db.Users.OrderBy(u => u.Id).FirstOrDefaultAsync();
+                    return BadRequest(_response);
 
-                Comment comment = await _commentService.GetAsync(u => u.Id == id);
+                }
+                var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+                Comment comment = await _commentService.GetAsync(u => u.Id == id && u.UserId == userId);
+
+                if (comment == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "No Comment Found "
+                    };
+                    return NotFound(_response);
+                }
 
                 comment.Content = updateDTO.Content;
                 comment.ArticleId = updateDTO.ArticleId;
-                comment.UserId = user.Id;
+                comment.UserId = userId;
 
                 await _commentService.UpdateAsync(comment);
 
@@ -186,28 +255,33 @@ namespace MSClubInsights.API.Controllers
 
                 _response.Data = comment;
 
-                return StatusCode(StatusCodes.Status204NoContent, _response);
+                return Ok(_response);
 
 
             }
             catch (Exception ex)
             {
                 _response.IsSuccess = false;
+
                 _response.ErrorMessages = new List<string>()
                 {
                     ex.ToString()
                 };
-            }
+                _response.StatusCode = HttpStatusCode.InternalServerError;
 
-            return _response;
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
+            }
         }
 
         [HttpDelete("{id:int}")]
         [Authorize]
         [EnableRateLimiting("Modify")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<APIResponse>> DeleteComment(int id)
         {
             try
@@ -239,11 +313,7 @@ namespace MSClubInsights.API.Controllers
 
                 await _commentService.DeleteAsync(comment);
 
-                _response.StatusCode = HttpStatusCode.NoContent;
-
-                _response.IsSuccess = true;
-
-                return Ok(_response);
+                return NoContent();
             }
             catch (Exception ex)
             {
@@ -253,10 +323,11 @@ namespace MSClubInsights.API.Controllers
                 {
                     ex.ToString()
                 };
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.Data = null;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
-
-            return _response;
-
         }
 
     }

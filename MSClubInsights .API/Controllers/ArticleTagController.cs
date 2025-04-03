@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 using MSClubInsights.Shared.Utitlites;
+using Azure;
 
 namespace MSClubInsights_.API.Controllers
 {
@@ -29,24 +30,53 @@ namespace MSClubInsights_.API.Controllers
         [HttpGet("{Article_Id:int}")]
         [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<APIResponse>> GetArticleTags(int Article_Id)
         {
             try
             {
-                _response.Data = await _articleTagService.GetAllAsync(u => u.ArticleId == Article_Id);
+                if (Article_Id <= 0)
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "Invalid ID. ID must be greater than zero."
+                    };
+                    return BadRequest(_response);
+                }
+
+                var articles = await _articleTagService.GetAllAsync(u => u.ArticleId == Article_Id);
+
+                if (articles == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    return NotFound(_response);
+                }
+
+                _response.Data = articles;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
+                return Ok(_response);
             }
             catch (Exception ex)
             {
                 _response.IsSuccess = false;
-                _response.StatusCode = HttpStatusCode.InternalServerError;
+
                 _response.ErrorMessages = new List<string>()
                 {
                     ex.ToString()
                 };
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.Data = null;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
-            return Ok(_response);
         }
 
         [HttpPost]
@@ -54,6 +84,8 @@ namespace MSClubInsights_.API.Controllers
         [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<APIResponse>> CreateArticleTag([FromBody] ArticleTagCreateDTO createDTO)
         {
@@ -79,91 +111,39 @@ namespace MSClubInsights_.API.Controllers
                 _response.Data = articleTag;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.Created;
+                _response.ErrorMessages = null;
+
+                return StatusCode(StatusCodes.Status201Created, _response);
             }
             catch (Exception ex)
             {
                 _response.IsSuccess = false;
-                _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.ErrorMessages = new List<string>() { ex.Message };
-            }
-            return StatusCode(StatusCodes.Status201Created , _response);
-        }
 
-        [HttpPut("{id:int}")]
-        [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
-        [EnableRateLimiting("Modify")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<APIResponse>> UpdateArticleTag(int id , [FromBody] ArticleTagUpdateDTO updateDTO)
-        {
-            try
-            {
-                if(updateDTO == null)
-                {
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-
-                    _response.IsSuccess = false;
-
-                    _response.ErrorMessages = new List<string>()
-                    {
-                        "Article Tag is null"
-                    };
-
-                    return BadRequest(_response);
-                }
-
-                if(id <= 0)
-                {
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-
-                    _response.IsSuccess = false;
-
-                    _response.ErrorMessages = new List<string>()
-                    {
-                        "Invalid ID. ID must be greater than zero."
-                    };
-                }
-
-                ArticleTag articleTag = await _articleTagService.GetAsync(u => u.Id == id);
-
-                articleTag.ArticleId = updateDTO.ArticleId;
-                articleTag.TagId = updateDTO.TagId;
-
-                await _articleTagService.UpdateAsync(articleTag);
-                
-                _response.StatusCode = HttpStatusCode.NoContent;
-
-                _response.IsSuccess = true;
-
-                _response.Data = articleTag;
-
-                return StatusCode(StatusCodes.Status204NoContent, _response);
-
-
-            }
-            catch (Exception ex)
-            {
-                _response.IsSuccess = false;
                 _response.ErrorMessages = new List<string>()
                 {
                     ex.ToString()
                 };
-            }
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.Data = null;
 
-            return _response;
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
+            }
         }
 
         [HttpDelete("{id:int}")]
         [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
         [EnableRateLimiting("Modify")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<APIResponse>> DeleteArticleTag(int id)
         {
             try
             {
-                if(id <= 0)
+                if (id <= 0)
                 {
                     _response.StatusCode = HttpStatusCode.BadRequest;
 
@@ -179,7 +159,7 @@ namespace MSClubInsights_.API.Controllers
 
                 ArticleTag articleTag = await _articleTagService.GetAsync(u => u.Id == id);
 
-                if(articleTag == null)
+                if (articleTag == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
 
@@ -190,13 +170,9 @@ namespace MSClubInsights_.API.Controllers
 
                 await _articleTagService.DeleteAsync(articleTag);
 
-                _response.StatusCode = HttpStatusCode.NoContent;
-
-                _response.IsSuccess = true;
-
-                return Ok(_response);
+                return NoContent();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _response.IsSuccess = false;
 
@@ -204,9 +180,12 @@ namespace MSClubInsights_.API.Controllers
                 {
                     ex.ToString()
                 };
-            }
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.Data = null;
 
-            return _response;
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
+
+            }
 
         }
 

@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using MSClubInsights.Shared.DTOs.Like;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace MSClubInsights_.API.Controllers
 {
@@ -30,6 +32,11 @@ namespace MSClubInsights_.API.Controllers
         [HttpGet("{Article_Id:int}")]
         [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<APIResponse>> GetLikes(int Article_Id)
         {
             try
@@ -45,11 +52,15 @@ namespace MSClubInsights_.API.Controllers
             catch (Exception ex)
             {
                 _response.IsSuccess = false;
-                _response.StatusCode = HttpStatusCode.InternalServerError;
+
                 _response.ErrorMessages = new List<string>()
                 {
                     ex.ToString()
                 };
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.Data = null;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
             return Ok(_response);
         }
@@ -57,8 +68,11 @@ namespace MSClubInsights_.API.Controllers
         [HttpGet("like/{like_id:int}")]
         [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<APIResponse>> GetLike(int like_id)
         {
             try
@@ -85,17 +99,24 @@ namespace MSClubInsights_.API.Controllers
                 _response.Data = like;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
+
+                return Ok(_response);
+
             }
             catch (Exception ex)
             {
                 _response.IsSuccess = false;
-                _response.StatusCode = HttpStatusCode.InternalServerError;
+
                 _response.ErrorMessages = new List<string>()
                 {
                     ex.ToString()
                 };
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.Data = null;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
+
             }
-            return Ok(_response);
         }
 
         [HttpPost]
@@ -103,6 +124,8 @@ namespace MSClubInsights_.API.Controllers
         [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<APIResponse>> CreateLike([FromBody] LikeCreateDTO createDTO)
         {
@@ -116,36 +139,45 @@ namespace MSClubInsights_.API.Controllers
                     return BadRequest(_response);
                 }
 
-                var user = await _db.Users.OrderBy(u => u.Id).FirstOrDefaultAsync();
+                var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
                 Like like = new()
                 {
                     ArticleId = createDTO.ArticleId,
-                    UserId = user.Id
+                    UserId = userId
                 };
 
                 await _likeService.AddAsync(like);
 
-                _response.Data = like;
-                _response.IsSuccess = true;
-                _response.StatusCode = HttpStatusCode.Created;
+                return CreatedAtAction(nameof(GetLike), new { id = like.Id }, like);
+
             }
             catch (Exception ex)
             {
                 _response.IsSuccess = false;
+
+                _response.ErrorMessages = new List<string>()
+                {
+                    ex.ToString()
+                };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.ErrorMessages = new List<string>() { ex.Message };
+                _response.Data = null;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
+
             }
-            return StatusCode(StatusCodes.Status201Created , _response);
         }
 
        
         [HttpDelete("{id:int}")]
         [Authorize]
         [EnableRateLimiting("Modify")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<APIResponse>> DeleteArticle(int id)
         {
             try
@@ -177,11 +209,7 @@ namespace MSClubInsights_.API.Controllers
 
                 await _likeService.DeleteAsync(like);
 
-                _response.StatusCode = HttpStatusCode.NoContent;
-
-                _response.IsSuccess = true;
-
-                return Ok(_response);
+                return NoContent();
             }
             catch(Exception ex)
             {
@@ -191,10 +219,11 @@ namespace MSClubInsights_.API.Controllers
                 {
                     ex.ToString()
                 };
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.Data = null;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
-
-            return _response;
-
         }
 
     }
