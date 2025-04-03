@@ -7,6 +7,7 @@ using MSClubInsights.Domain.Entities;
 using MSClubInsights.Shared.DTOs.Category;
 using MSClubInsights.Shared.Utitlites;
 using System.Net;
+using AutoMapper;
 
 namespace MSClubInsights.API.Controllers
 {
@@ -16,12 +17,15 @@ namespace MSClubInsights.API.Controllers
     {
         private readonly ICategoryService _categoryService;
         public APIResponse _response;
+        private readonly IMapper _mapper;
 
-        public CategoryController(ICategoryService categoryService)
+        public CategoryController(ICategoryService categoryService , IMapper mapper)
         {
             _categoryService = categoryService;
 
             _response = new();
+
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -76,10 +80,7 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                Category category = new()
-                {
-                    Name = createDTO.Name
-                };
+                Category category = _mapper.Map<Category>(createDTO);
 
                 await _categoryService.AddAsync(category);
 
@@ -158,7 +159,7 @@ namespace MSClubInsights.API.Controllers
                     return NotFound(_response);
                 }
 
-                category.Name = updateDTO.Name;
+                _mapper.Map(updateDTO, category);
 
                 await _categoryService.UpdateAsync(category);
 

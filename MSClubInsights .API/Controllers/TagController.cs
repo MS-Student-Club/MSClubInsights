@@ -7,6 +7,7 @@ using MSClubInsights.Domain.Entities;
 using MSClubInsights.Shared.DTOs.Tag;
 using MSClubInsights.Shared.Utitlites;
 using System.Net;
+using AutoMapper;
 
 namespace MSClubInsights.API.Controllers
 {
@@ -16,12 +17,14 @@ namespace MSClubInsights.API.Controllers
     {
         private readonly ITagService _tagService;
         public APIResponse _response;
-
-        public TagController(ITagService tagService)
+        private readonly IMapper _mapper;
+        public TagController(ITagService tagService , IMapper mapper)
         {
             _tagService = tagService;
 
             _response = new();
+
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -78,10 +81,7 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                Tag tag = new()
-                {
-                    Name = createDTO.Name
-                };
+                Tag tag = _mapper.Map<Tag>(createDTO);
 
                 await _tagService.AddAsync(tag);
 
@@ -161,7 +161,7 @@ namespace MSClubInsights.API.Controllers
                     return NotFound(_response);
                 }
 
-                tag.Name = updateDTO.Name;
+                _mapper.Map(updateDTO, tag);
 
                 await _tagService.UpdateAsync(tag);
 

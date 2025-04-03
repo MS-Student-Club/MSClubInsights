@@ -10,6 +10,7 @@ using MSClubInsights.Shared.DTOs.Category;
 using MSClubInsights.Shared.DTOs.Rating;
 using System.Net;
 using System.Security.Claims;
+using AutoMapper;
 using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace MSClubInsights.API.Controllers
@@ -21,14 +22,17 @@ namespace MSClubInsights.API.Controllers
         private readonly IRatingService _ratingService;
         private readonly AppDbContext _db;
         public APIResponse _response;
+        private readonly IMapper _mapper;
 
-        public RatingController(IRatingService ratingService , AppDbContext db)
+        public RatingController(IRatingService ratingService , AppDbContext db , IMapper mapper)
         {
             _ratingService = ratingService;
 
             _response = new();
 
             _db = db;
+
+            _mapper = mapper;
         }
 
         [HttpGet("{Article_Id:int}")]
@@ -142,12 +146,7 @@ namespace MSClubInsights.API.Controllers
 
                 var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
-                Rating rating = new()
-                {
-                    ArticleId = createDTO.ArticleId,
-                    Value = createDTO.Value,
-                    UserId = userId
-                };
+                Rating rating = _mapper.Map<Rating>(createDTO);
 
                 await _ratingService.AddAsync(rating);
 
@@ -227,8 +226,8 @@ namespace MSClubInsights.API.Controllers
                     return NotFound(_response);
                 }
 
-                rating.Value = updateDTO.Value;
-                
+               _mapper.Map(updateDTO, rating);
+
 
                 await _ratingService.UpdateAsync(rating);
 

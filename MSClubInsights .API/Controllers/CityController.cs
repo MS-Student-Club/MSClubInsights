@@ -8,6 +8,7 @@ using MSClubInsights.Domain.Entities;
 using MSClubInsights.Shared.DTOs.City;
 using MSClubInsights.Shared.Utitlites;
 using System.Net;
+using AutoMapper;
 
 namespace MSClubInsights.API.Controllers
 {
@@ -17,12 +18,14 @@ namespace MSClubInsights.API.Controllers
     {
         private readonly ICityService _citySevice;
         public APIResponse _response;
-
-        public CityController(ICityService citySevice)
+        private readonly IMapper _mapper;
+        public CityController(ICityService citySevice , IMapper mapper)
         {
             _citySevice = citySevice;
 
             _response = new();
+
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -78,10 +81,7 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                City city = new()
-                {
-                    Name = createDTO.Name
-                };
+                City city = _mapper.Map<City>(createDTO);
 
                 await _citySevice.AddAsync(city);
 
@@ -162,7 +162,7 @@ namespace MSClubInsights.API.Controllers
                     return NotFound(_response);
                 }
 
-                city.Name = updateDTO.Name;
+                _mapper.Map(updateDTO, city);
 
                 await _citySevice.UpdateAsync(city);
 

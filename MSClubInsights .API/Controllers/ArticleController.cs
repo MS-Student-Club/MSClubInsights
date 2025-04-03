@@ -4,6 +4,7 @@ using MSClubInsights.Application.ServiceInterfaces;
 using MSClubInsights.Domain.Entities;
 using System.Net;
 using System.Security.Claims;
+using AutoMapper;
 using MSClubInsights.Shared.DTOs.Article;
 using MSClubInsights.Infrastructure.DB;
 using Microsoft.EntityFrameworkCore;
@@ -23,13 +24,16 @@ namespace MSClubInsights_.API.Controllers
         private readonly IArticleService _articleService;
         public APIResponse _response;
         private readonly AppDbContext _db;
-        public ArticleController(IArticleService articleService , AppDbContext db)
+        private readonly IMapper _mapper;
+        public ArticleController(IArticleService articleService , AppDbContext db , IMapper mapper)
         {
             _articleService = articleService;
 
             _response = new();
 
             _db = db;
+
+            _mapper = mapper;
 
         }
 
@@ -137,15 +141,7 @@ namespace MSClubInsights_.API.Controllers
 
                 var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
-                Article article = new()
-                {
-                    ImageUrl = createDTO.ImageUrl,
-                    Title = createDTO.Title,
-                    Content = createDTO.Content,
-                    CategoryId = createDTO.CategoryId,
-                    AuthorId = userId,
-                    Date = DateTime.Now,
-                };
+                Article article = _mapper.Map<Article>(createDTO);
 
                 await _articleService.AddAsync(article);
 
@@ -222,12 +218,7 @@ namespace MSClubInsights_.API.Controllers
                     return NotFound(_response);
                 }
 
-                article.Title = updateDTO.Title;
-                article.Content = updateDTO.Content;
-                article.ImageUrl = updateDTO.ImageUrl;
-                article.CategoryId = updateDTO.CategoryId;
-                article.AuthorId = userId;
-                article.Date = DateTime.Now;
+                _mapper.Map(updateDTO, article);
 
                 await _articleService.UpdateAsync(article);
 

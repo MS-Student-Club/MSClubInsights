@@ -3,6 +3,7 @@ using MSClubInsights.API.Responses;
 using MSClubInsights.Application.ServiceInterfaces;
 using MSClubInsights.Domain.Entities;
 using System.Net;
+using AutoMapper;
 using MSClubInsights.Shared.DTOs.ArticleTag;
 using MSClubInsights.Infrastructure.DB;
 using Microsoft.EntityFrameworkCore;
@@ -19,12 +20,14 @@ namespace MSClubInsights_.API.Controllers
     {
         private readonly IArticleTagService _articleTagService;
         public APIResponse _response;
-        public ArticleTagController(IArticleTagService articleTagService, AppDbContext db)
+        private readonly IMapper _mapper;
+        public ArticleTagController(IArticleTagService articleTagService, AppDbContext db , IMapper mapper)
         {
             _articleTagService = articleTagService;
 
             _response = new();
 
+            _mapper = mapper;
         }
 
         [HttpGet("{Article_Id:int}")]
@@ -100,11 +103,7 @@ namespace MSClubInsights_.API.Controllers
                 }
 
 
-                ArticleTag articleTag = new()
-                {
-                   ArticleId = createDTO.ArticleId,
-                    TagId = createDTO.TagId
-                };
+                ArticleTag articleTag = _mapper.Map<ArticleTag>(createDTO);
 
                 await _articleTagService.AddAsync(articleTag);
 

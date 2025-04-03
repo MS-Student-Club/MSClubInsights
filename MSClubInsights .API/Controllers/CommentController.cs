@@ -11,6 +11,7 @@ using MSClubInsights.Shared.DTOs.Tag;
 using MSClubInsights.Shared.Utitlites;
 using System.Net;
 using System.Security.Claims;
+using AutoMapper;
 using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace MSClubInsights.API.Controllers
@@ -22,13 +23,16 @@ namespace MSClubInsights.API.Controllers
         private readonly ICommentService _commentService;
         public APIResponse _response;
         private readonly AppDbContext _db;
-        public CommentController(ICommentService commentService , AppDbContext db)
+        private readonly IMapper _mapper;
+        public CommentController(ICommentService commentService , AppDbContext db , IMapper mapper)
         {
             _commentService = commentService;
 
             _response = new();
 
             _db = db;
+
+            _mapper = mapper;
         }
 
         [HttpGet("{Article_Id:int}", Name = "GetComments")]
@@ -161,13 +165,7 @@ namespace MSClubInsights.API.Controllers
 
                 var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
-                Comment comment = new()
-                {
-                    Content = createDTO.Content,
-                    ArticleId = createDTO.ArticleId,
-                    Date = DateTime.Now,
-                    UserId = userId
-                };
+                Comment comment = _mapper.Map<Comment>(createDTO);
 
                 await _commentService.AddAsync(comment);
 
@@ -243,9 +241,7 @@ namespace MSClubInsights.API.Controllers
                     return NotFound(_response);
                 }
 
-                comment.Content = updateDTO.Content;
-                comment.ArticleId = updateDTO.ArticleId;
-                comment.UserId = userId;
+                _mapper.Map(updateDTO, comment);
 
                 await _commentService.UpdateAsync(comment);
 

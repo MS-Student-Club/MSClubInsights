@@ -10,6 +10,7 @@ using MSClubInsights.Shared.DTOs.Like;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using AutoMapper;
 using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace MSClubInsights_.API.Controllers
@@ -20,13 +21,15 @@ namespace MSClubInsights_.API.Controllers
     {
         private readonly ILikeService _likeService;
         public APIResponse _response;
+        private readonly IMapper _mapper;
         private readonly AppDbContext _db;
-        public LikeController(ILikeService likeService , AppDbContext db)
+        public LikeController(ILikeService likeService , AppDbContext db , IMapper mapper)
         {
             _likeService = likeService;
 
             _response = new();
             _db = db;
+            _mapper = mapper;
         }
 
         [HttpGet("{Article_Id:int}")]
@@ -141,11 +144,7 @@ namespace MSClubInsights_.API.Controllers
 
                 var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
-                Like like = new()
-                {
-                    ArticleId = createDTO.ArticleId,
-                    UserId = userId
-                };
+                Like like = _mapper.Map<Like>(createDTO);
 
                 await _likeService.AddAsync(like);
 
