@@ -16,7 +16,7 @@ namespace MSClubInsights.Application.Services
         }
         public async Task<LoginResponseDTO> Login(LoginRequestDTO request)
         {
-            var user = await _userRepository.GetUserByUserName(request.Username);
+            var user = await _userRepository.GetUserByUserName(request.Email);
 
             bool isValid = await _userRepository.CheckPassword(user, request.Password);
 
