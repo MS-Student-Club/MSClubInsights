@@ -8,6 +8,8 @@ using MSClubInsights.Shared.DTOs.Category;
 using MSClubInsights.Shared.Utitlites;
 using System.Net;
 using AutoMapper;
+using MSClubInsights.Application.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace MSClubInsights.API.Controllers
 {
@@ -49,7 +51,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -76,7 +78,17 @@ namespace MSClubInsights.API.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "Category is null" };
+                    _response.ErrorMessages = new List<string> { "Can't Accept Empty Category Data" };
+                    return BadRequest(_response);
+                }
+
+                var existingCategory = await _categoryService.GetAsync(u => u.Name.ToLower() == createDTO.Name.ToLower());
+
+                if (existingCategory != null)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages = new List<string> { "A Category with the same Name already exists." };
                     return BadRequest(_response);
                 }
 
@@ -95,7 +107,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -126,9 +138,19 @@ namespace MSClubInsights.API.Controllers
 
                     _response.ErrorMessages = new List<string>()
                     {
-                        "Category is null"
+                        "Can't Accept Empty Category Data"
                     };
 
+                    return BadRequest(_response);
+                }
+
+                var existingCategory = await _categoryService.GetAsync(u => u.Name.ToLower() == updateDTO.Name.ToLower());
+
+                if (existingCategory != null)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages = new List<string> { "A Category with the same Name already exists." };
                     return BadRequest(_response);
                 }
 
@@ -179,7 +201,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -236,7 +258,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;

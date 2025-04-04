@@ -9,6 +9,8 @@ using MSClubInsights.Shared.DTOs.City;
 using MSClubInsights.Shared.Utitlites;
 using System.Net;
 using AutoMapper;
+using MSClubInsights.Application.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace MSClubInsights.API.Controllers
 {
@@ -51,7 +53,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -77,7 +79,17 @@ namespace MSClubInsights.API.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "City is null" };
+                    _response.ErrorMessages = new List<string> { "Can't Accept Empty City Data" };
+                    return BadRequest(_response);
+                }
+
+                var existingCity = await _citySevice.GetAsync(u => u.Name.ToLower() == createDTO.Name.ToLower());
+
+                if (existingCity != null)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages = new List<string> { "A City with the same Name already exists." };
                     return BadRequest(_response);
                 }
 
@@ -99,7 +111,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -129,9 +141,19 @@ namespace MSClubInsights.API.Controllers
 
                     _response.ErrorMessages = new List<string>()
                     {
-                        "City is null"
+                        "Can't Accept Empty City Data"
                     };
 
+                    return BadRequest(_response);
+                }
+
+                var existingCity = await _citySevice.GetAsync(u => u.Name.ToLower() == updateDTO.Name.ToLower());
+
+                if (existingCity != null)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages = new List<string> { "A City with the same Name already exists." };
                     return BadRequest(_response);
                 }
 
@@ -182,7 +204,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -227,6 +249,11 @@ namespace MSClubInsights.API.Controllers
 
                     _response.IsSuccess = false;
 
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "City not found"
+                    };
+
                     return NotFound(_response);
                 }
 
@@ -241,7 +268,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;

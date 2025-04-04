@@ -47,7 +47,19 @@ namespace MSClubInsights.API.Controllers
         {
             try
             {
-                _response.Data = await _ratingService.GetAllAsync(u => u.ArticleId == Article_Id);
+                var Ratings = await _ratingService.GetAllAsync(u => u.ArticleId == Article_Id);
+                if (Ratings == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "No Ratings Found For This Article"
+                    };
+                    return NotFound(_response);
+                }
+
+                _response.Data = Ratings ;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
 
@@ -60,7 +72,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -114,7 +126,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -140,11 +152,22 @@ namespace MSClubInsights.API.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "Rating is null" };
+                    _response.ErrorMessages = new List<string> { "Can't Accept Empty Rating Data" };
                     return BadRequest(_response);
                 }
 
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                var existingRating = await _ratingService.GetAsync(u => u.UserId == userId);
+
+                if (existingRating != null)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages = new List<string> { "A Rating Is Already Made For This Article By This user." };
+                    return BadRequest(_response);
+                }
+
 
                 Rating rating = _mapper.Map<Rating>(createDTO);
 
@@ -160,7 +183,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -192,7 +215,7 @@ namespace MSClubInsights.API.Controllers
 
                     _response.ErrorMessages = new List<string>()
                     {
-                        "Rating is null"
+                        "Can't Accept Empty Rating Data"
                     };
 
                     return BadRequest(_response);
@@ -214,7 +237,7 @@ namespace MSClubInsights.API.Controllers
 
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-
+             
                 Rating rating = await _ratingService.GetAsync(u => u.Id == id && u.UserId == userId);
 
                 if (rating == null)
@@ -235,7 +258,7 @@ namespace MSClubInsights.API.Controllers
 
                 await _ratingService.UpdateAsync(rating);
 
-                _response.StatusCode = HttpStatusCode.NoContent;
+                _response.StatusCode = HttpStatusCode.OK;
 
                 _response.IsSuccess = true;
 
@@ -251,7 +274,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -297,6 +320,11 @@ namespace MSClubInsights.API.Controllers
 
                     _response.IsSuccess = false;
 
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "No Rating Found"
+                    };
+
                     return NotFound(_response);
                 }
 
@@ -310,7 +338,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;

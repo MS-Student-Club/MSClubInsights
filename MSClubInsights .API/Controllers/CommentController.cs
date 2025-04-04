@@ -52,7 +52,7 @@ namespace MSClubInsights.API.Controllers
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
                     _response.ErrorMessages = new List<string> { "Invalid ID. ID must be greater than zero." };
-                    _response.Data = new List<string> { "No Data Retreived" };
+                    _response.Data = new List<string> { "No Data Retrieved" };
                     return BadRequest(_response);
                 }
 
@@ -62,7 +62,7 @@ namespace MSClubInsights.API.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.NotFound;
-                    _response.ErrorMessages = new List<string> { "No Article Found " };
+                    _response.ErrorMessages = new List<string> { "No Comments Found For This Article" };
                     return NotFound(_response);
                 }
 
@@ -79,7 +79,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -106,7 +106,7 @@ namespace MSClubInsights.API.Controllers
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
                     _response.ErrorMessages = new List<string> { "Invalid ID. ID must be greater than zero." };
-                    _response.Data = new List<string> { "No Data Retreived" };
+                    _response.Data = new List<string> { "No Data Retrieved" };
                     return BadRequest(_response);
                 }
 
@@ -133,7 +133,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -159,7 +159,7 @@ namespace MSClubInsights.API.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "Comment is null" };
+                    _response.ErrorMessages = new List<string> { "Can't Accept Empty Comment Data" };
                     return BadRequest(_response);
                 }
 
@@ -179,7 +179,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -209,7 +209,7 @@ namespace MSClubInsights.API.Controllers
 
                     _response.ErrorMessages = new List<string>()
                     {
-                        "Comment is null"
+                        "Can't Accept Empty Comment Data"
                     };
 
                     return BadRequest(_response);
@@ -238,7 +238,7 @@ namespace MSClubInsights.API.Controllers
                     _response.IsSuccess = false;
                     _response.ErrorMessages = new List<string>()
                     {
-                        "No Comment Found "
+                        "No Comment Found"
                     };
                     return NotFound(_response);
                 }
@@ -249,7 +249,7 @@ namespace MSClubInsights.API.Controllers
 
                 await _commentService.UpdateAsync(comment);
 
-                _response.StatusCode = HttpStatusCode.NoContent;
+                _response.StatusCode = HttpStatusCode.OK;
 
                 _response.IsSuccess = true;
 
@@ -265,7 +265,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
 
@@ -308,6 +308,11 @@ namespace MSClubInsights.API.Controllers
 
                     _response.IsSuccess = false;
 
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "No Comment Found"
+                    };
+
                     return NotFound(_response);
                 }
 
@@ -321,7 +326,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;

@@ -58,7 +58,7 @@ namespace MSClubInsights_.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -110,7 +110,7 @@ namespace MSClubInsights_.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -135,7 +135,17 @@ namespace MSClubInsights_.API.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "Article is null" };
+                    _response.ErrorMessages = new List<string> { "Can't Accept Empty Article Data" };
+                    return BadRequest(_response);
+                }
+
+                var existingArticle = await _articleService.GetAsync(u => u.Title.ToLower() == createDTO.Title.ToLower());
+
+                if (existingArticle != null)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages = new List<string> { "An Article with the same Title already exists." };
                     return BadRequest(_response);
                 }
 
@@ -155,7 +165,7 @@ namespace MSClubInsights_.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -185,7 +195,7 @@ namespace MSClubInsights_.API.Controllers
 
                     _response.ErrorMessages = new List<string>()
                     {
-                        "Article is null"
+                        "Can't Accept Empty Article Data"
                     };
 
                     return BadRequest(_response);
@@ -201,6 +211,16 @@ namespace MSClubInsights_.API.Controllers
                     {
                         "Invalid ID. ID must be greater than zero."
                     };
+                    return BadRequest(_response);
+                }
+
+                var existingArticle = await _articleService.GetAsync(u => u.Title.ToLower() == updateDTO.Title.ToLower());
+
+                if (existingArticle != null)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages = new List<string> { "An Article with the same Title already exists." };
                     return BadRequest(_response);
                 }
 
@@ -242,7 +262,7 @@ namespace MSClubInsights_.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -300,7 +320,7 @@ namespace MSClubInsights_.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;

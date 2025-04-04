@@ -59,6 +59,10 @@ namespace MSClubInsights_.API.Controllers
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
                     _response.IsSuccess = false;
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "No Tags found for the given Article ID."
+                    };
                     return NotFound(_response);
                 }
 
@@ -73,7 +77,7 @@ namespace MSClubInsights_.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -98,10 +102,20 @@ namespace MSClubInsights_.API.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "Article Tag is null" };
+                    _response.ErrorMessages = new List<string> { "Can't Accept Empty Article - Tag Data" };
                     return BadRequest(_response);
                 }
 
+                var existingArticleTag =
+                    await _articleTagService.GetAsync(u => u.ArticleId == createDTO.ArticleId && u.TagId == createDTO.TagId);
+
+                if (existingArticleTag != null)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages = new List<string> { "This Tag Is Already Placed For This Article" };
+                    return BadRequest(_response);
+                }
 
                 ArticleTag articleTag = _mapper.Map<ArticleTag>(createDTO);
 
@@ -120,7 +134,7 @@ namespace MSClubInsights_.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -163,6 +177,10 @@ namespace MSClubInsights_.API.Controllers
                     _response.StatusCode = HttpStatusCode.NotFound;
 
                     _response.IsSuccess = false;
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "Tag Not Found"
+                    };
 
                     return NotFound(_response);
                 }
@@ -177,7 +195,7 @@ namespace MSClubInsights_.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;

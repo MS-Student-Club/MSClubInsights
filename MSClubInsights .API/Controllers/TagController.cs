@@ -8,6 +8,7 @@ using MSClubInsights.Shared.DTOs.Tag;
 using MSClubInsights.Shared.Utitlites;
 using System.Net;
 using AutoMapper;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace MSClubInsights.API.Controllers
 {
@@ -77,7 +78,17 @@ namespace MSClubInsights.API.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "Tag is null" };
+                    _response.ErrorMessages = new List<string> { "Can't Accept Empty Tag Data" };
+                    return BadRequest(_response);
+                }
+
+                var existingTag = await _tagService.GetAsync(t => t.Name == createDTO.Name);
+
+                if (existingTag != null)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages = new List<string> { "A tag with the same name already exists." };
                     return BadRequest(_response);
                 }
 
@@ -98,7 +109,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -129,9 +140,19 @@ namespace MSClubInsights.API.Controllers
 
                     _response.ErrorMessages = new List<string>()
                     {
-                        "Tag is null"
+                        "Can't Accept Empty Tag Data"
                     };
 
+                    return BadRequest(_response);
+                }
+
+                var existingTag = await _tagService.GetAsync(t => t.Name == updateDTO.Name);
+
+                if (existingTag != null)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages = new List<string> { "A tag with the same name already exists." };
                     return BadRequest(_response);
                 }
 
@@ -165,7 +186,7 @@ namespace MSClubInsights.API.Controllers
 
                 await _tagService.UpdateAsync(tag);
 
-                _response.StatusCode = HttpStatusCode.NoContent;
+                _response.StatusCode = HttpStatusCode.OK;
 
                 _response.IsSuccess = true;
 
@@ -181,7 +202,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -225,6 +246,11 @@ namespace MSClubInsights.API.Controllers
 
                     _response.IsSuccess = false;
 
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "Tag Not Found"
+                    };
+
                     return NotFound(_response);
                 }
 
@@ -238,7 +264,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;

@@ -45,6 +45,18 @@ namespace MSClubInsights_.API.Controllers
             try
             {
                 var likes = await _likeService.GetAllAsync(u => u.ArticleId == Article_Id);
+
+                if (likes == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "No Likes Found For This Article"
+                    };
+                    return NotFound(_response);
+                }
+
                 _response.Data = new List<string>()
                 {
                     likes.Count().ToString()
@@ -58,7 +70,7 @@ namespace MSClubInsights_.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -95,7 +107,7 @@ namespace MSClubInsights_.API.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.NotFound;
-                    _response.ErrorMessages = new List<string> { "No Like Found " };
+                    _response.ErrorMessages = new List<string> { "No Like Data Found " };
                     return NotFound(_response);
                 }
 
@@ -112,7 +124,7 @@ namespace MSClubInsights_.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -138,11 +150,23 @@ namespace MSClubInsights_.API.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "Like is null" };
+                    _response.ErrorMessages = new List<string> { "Can't Accept Empty Like Data" };
                     return BadRequest(_response);
                 }
 
+
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                var existingLike =
+                    await _likeService.GetAsync(u => u.ArticleId == createDTO.ArticleId && u.UserId == userId);
+
+                if (existingLike != null)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages = new List<string> { "A Like Is Already Placed For This Article By This user." };
+                    return BadRequest(_response);
+                }
 
                 Like like = _mapper.Map<Like>(createDTO);
 
@@ -159,7 +183,7 @@ namespace MSClubInsights_.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
@@ -205,6 +229,11 @@ namespace MSClubInsights_.API.Controllers
 
                     _response.IsSuccess = false;
 
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "No Like Data Found"
+                    };
+
                     return NotFound(_response);
                 }
 
@@ -218,7 +247,7 @@ namespace MSClubInsights_.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 _response.Data = null;
