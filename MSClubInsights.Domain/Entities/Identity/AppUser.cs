@@ -20,4 +20,15 @@ public class AppUser : IdentityUser
 
     public City City { get; set; }
 
+    [ForeignKey("College")]
+
+    public int collegeId { get; set; }
+
+    public College College { get; set; }
+
+    [ForeignKey("Univeristy")]
+    public int univeristyId { get; set; }
+
+    public Univeristy Univeristy { get; set; }
+
 }
