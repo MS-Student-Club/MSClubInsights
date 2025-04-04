@@ -3,15 +3,12 @@ using MSClubInsights.API.Responses;
 using MSClubInsights.Application.ServiceInterfaces;
 using MSClubInsights.Domain.Entities;
 using System.Net;
-using MSClubInsights.Shared.DTOs.Article;
-using MSClubInsights.Infrastructure.DB;
-using Microsoft.EntityFrameworkCore;
 using MSClubInsights.Shared.DTOs.Like;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using AutoMapper;
-using Microsoft.IdentityModel.JsonWebTokens;
+
 
 namespace MSClubInsights_.API.Controllers
 {
@@ -22,13 +19,11 @@ namespace MSClubInsights_.API.Controllers
         private readonly ILikeService _likeService;
         public APIResponse _response;
         private readonly IMapper _mapper;
-        private readonly AppDbContext _db;
-        public LikeController(ILikeService likeService , AppDbContext db , IMapper mapper)
+        public LikeController(ILikeService likeService , IMapper mapper)
         {
             _likeService = likeService;
 
             _response = new();
-            _db = db;
             _mapper = mapper;
         }
 
@@ -40,7 +35,7 @@ namespace MSClubInsights_.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> GetLikes(int Article_Id)
+        public async Task<ActionResult<APIResponse>> GetArticleLikeCount(int Article_Id)
         {
             try
             {
@@ -73,7 +68,6 @@ namespace MSClubInsights_.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
@@ -88,7 +82,7 @@ namespace MSClubInsights_.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> GetLike(int like_id)
+        public async Task<ActionResult<APIResponse>> GetLikeDetails(int like_id)
         {
             try
             {
@@ -174,7 +168,7 @@ namespace MSClubInsights_.API.Controllers
 
                 await _likeService.AddAsync(like);
 
-                return CreatedAtAction(nameof(GetLike), new { id = like.Id }, like);
+                return CreatedAtAction(nameof(GetLikeDetails), new { id = like.Id }, like);
 
             }
             catch (Exception ex)

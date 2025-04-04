@@ -1,18 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.EntityFrameworkCore;
 using MSClubInsights.API.Responses;
 using MSClubInsights.Application.ServiceInterfaces;
 using MSClubInsights.Domain.Entities;
-using MSClubInsights.Infrastructure.DB;
 using MSClubInsights.Shared.DTOs.Comment;
-using MSClubInsights.Shared.DTOs.Tag;
-using MSClubInsights.Shared.Utitlites;
 using System.Net;
 using System.Security.Claims;
 using AutoMapper;
-using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace MSClubInsights.API.Controllers
 {
@@ -22,20 +17,17 @@ namespace MSClubInsights.API.Controllers
     {
         private readonly ICommentService _commentService;
         public APIResponse _response;
-        private readonly AppDbContext _db;
         private readonly IMapper _mapper;
-        public CommentController(ICommentService commentService , AppDbContext db , IMapper mapper)
+        public CommentController(ICommentService commentService , IMapper mapper)
         {
             _commentService = commentService;
 
             _response = new();
 
-            _db = db;
-
             _mapper = mapper;
         }
 
-        [HttpGet("{Article_Id:int}", Name = "GetComments")]
+        [HttpGet("article/{Article_Id:int}", Name = "GetArticleComments")]
         [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -43,7 +35,7 @@ namespace MSClubInsights.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> GetComments(int Article_Id)
+        public async Task<ActionResult<APIResponse>> GetArticleComments(int Article_Id)
         {
             try
             {
@@ -82,7 +74,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
 
@@ -97,7 +88,7 @@ namespace MSClubInsights.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> GetComment(int Comment_Id)
+        public async Task<ActionResult<APIResponse>> GetCommentDetails(int Comment_Id)
         {
             try
             {
@@ -110,9 +101,9 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                var tag = await _commentService.GetAsync(u => u.Id == Comment_Id);
+                var comment = await _commentService.GetAsync(u => u.Id == Comment_Id);
 
-                if (tag == null)
+                if (comment == null)
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.NotFound;
@@ -120,7 +111,7 @@ namespace MSClubInsights.API.Controllers
                     return NotFound(_response);
                 }
 
-                _response.Data = tag;
+                _response.Data = comment;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
 
@@ -136,7 +127,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
 
@@ -171,7 +161,7 @@ namespace MSClubInsights.API.Controllers
 
                 await _commentService.AddAsync(comment);
 
-                return CreatedAtAction(nameof(GetComment), new { id = comment.Id }, comment);
+                return CreatedAtAction(nameof(GetCommentDetails), new { id = comment.Id }, comment);
             }
             catch (Exception ex)
             {
@@ -329,7 +319,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }

@@ -1,17 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.EntityFrameworkCore;
 using MSClubInsights.API.Responses;
 using MSClubInsights.Application.ServiceInterfaces;
 using MSClubInsights.Domain.Entities;
-using MSClubInsights.Infrastructure.DB;
-using MSClubInsights.Shared.DTOs.Category;
 using MSClubInsights.Shared.DTOs.Rating;
 using System.Net;
 using System.Security.Claims;
 using AutoMapper;
-using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace MSClubInsights.API.Controllers
 {
@@ -20,17 +16,14 @@ namespace MSClubInsights.API.Controllers
     public class RatingController : ControllerBase
     {
         private readonly IRatingService _ratingService;
-        private readonly AppDbContext _db;
         public APIResponse _response;
         private readonly IMapper _mapper;
 
-        public RatingController(IRatingService ratingService , AppDbContext db , IMapper mapper)
+        public RatingController(IRatingService ratingService , IMapper mapper)
         {
             _ratingService = ratingService;
 
             _response = new();
-
-            _db = db;
 
             _mapper = mapper;
         }
@@ -43,7 +36,7 @@ namespace MSClubInsights.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> GetRatings(int Article_Id)
+        public async Task<ActionResult<APIResponse>> GetArticleRatings(int Article_Id)
         {
             try
             {
@@ -75,7 +68,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
 
@@ -90,7 +82,7 @@ namespace MSClubInsights.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> GetRating(int Rating_Id)
+        public async Task<ActionResult<APIResponse>> GetRatingDetails(int Rating_Id)
         {
             try
             {
@@ -129,7 +121,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
 
@@ -175,7 +166,7 @@ namespace MSClubInsights.API.Controllers
 
                 await _ratingService.AddAsync(rating);
 
-                return CreatedAtAction(nameof(GetRating), new { id = rating.Id }, rating);
+                return CreatedAtAction(nameof(GetRatingDetails), new { id = rating.Id }, rating);
             }
             catch (Exception ex)
             {
@@ -186,7 +177,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
@@ -277,7 +267,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
 
@@ -341,7 +330,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
 

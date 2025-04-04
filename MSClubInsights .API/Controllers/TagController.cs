@@ -8,7 +8,6 @@ using MSClubInsights.Shared.DTOs.Tag;
 using MSClubInsights.Shared.Utitlites;
 using System.Net;
 using AutoMapper;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace MSClubInsights.API.Controllers
 {
@@ -56,7 +55,6 @@ namespace MSClubInsights.API.Controllers
                     ex.ToString()
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
@@ -99,7 +97,6 @@ namespace MSClubInsights.API.Controllers
                 _response.Data = tag;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.Created;
-                _response.ErrorMessages = null;
 
                 return StatusCode(StatusCodes.Status201Created, _response);
             }
@@ -205,7 +202,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
@@ -267,7 +263,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }

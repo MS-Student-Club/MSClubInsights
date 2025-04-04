@@ -8,8 +8,6 @@ using MSClubInsights.Shared.DTOs.Category;
 using MSClubInsights.Shared.Utitlites;
 using System.Net;
 using AutoMapper;
-using MSClubInsights.Application.Services;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace MSClubInsights.API.Controllers
 {
@@ -54,7 +52,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
 
@@ -110,7 +107,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
 
@@ -204,7 +200,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
@@ -261,7 +256,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
 

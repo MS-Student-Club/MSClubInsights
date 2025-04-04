@@ -1,5 +1,4 @@
-﻿using Azure;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using MSClubInsights.API.Responses;
@@ -9,8 +8,6 @@ using MSClubInsights.Shared.DTOs.City;
 using MSClubInsights.Shared.Utitlites;
 using System.Net;
 using AutoMapper;
-using MSClubInsights.Application.Services;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace MSClubInsights.API.Controllers
 {
@@ -56,7 +53,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
 
@@ -100,7 +96,6 @@ namespace MSClubInsights.API.Controllers
                 _response.Data = city;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.Created;
-                _response.ErrorMessages = null;
 
                 return StatusCode(StatusCodes.Status201Created, _response);
 
@@ -114,7 +109,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
@@ -207,7 +201,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
@@ -271,7 +264,6 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }

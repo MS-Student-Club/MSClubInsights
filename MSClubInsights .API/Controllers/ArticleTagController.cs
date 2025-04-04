@@ -5,12 +5,9 @@ using MSClubInsights.Domain.Entities;
 using System.Net;
 using AutoMapper;
 using MSClubInsights.Shared.DTOs.ArticleTag;
-using MSClubInsights.Infrastructure.DB;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 using MSClubInsights.Shared.Utitlites;
-using Azure;
 
 namespace MSClubInsights_.API.Controllers
 {
@@ -21,7 +18,7 @@ namespace MSClubInsights_.API.Controllers
         private readonly IArticleTagService _articleTagService;
         public APIResponse _response;
         private readonly IMapper _mapper;
-        public ArticleTagController(IArticleTagService articleTagService, AppDbContext db , IMapper mapper)
+        public ArticleTagController(IArticleTagService articleTagService , IMapper mapper)
         {
             _articleTagService = articleTagService;
 
@@ -53,9 +50,9 @@ namespace MSClubInsights_.API.Controllers
                     return BadRequest(_response);
                 }
 
-                var articles = await _articleTagService.GetAllAsync(u => u.ArticleId == Article_Id);
+                var articleTags = await _articleTagService.GetAllAsync(u => u.ArticleId == Article_Id);
 
-                if (articles == null)
+                if (articleTags == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
                     _response.IsSuccess = false;
@@ -66,7 +63,7 @@ namespace MSClubInsights_.API.Controllers
                     return NotFound(_response);
                 }
 
-                _response.Data = articles;
+                _response.Data = articleTags;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
                 return Ok(_response);
@@ -80,7 +77,6 @@ namespace MSClubInsights_.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
@@ -137,7 +133,6 @@ namespace MSClubInsights_.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
@@ -198,7 +193,6 @@ namespace MSClubInsights_.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
 
