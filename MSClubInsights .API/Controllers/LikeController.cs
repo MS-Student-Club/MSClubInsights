@@ -142,7 +142,7 @@ namespace MSClubInsights_.API.Controllers
                     return BadRequest(_response);
                 }
 
-                var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 Like like = _mapper.Map<Like>(createDTO);
 

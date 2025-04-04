@@ -144,7 +144,7 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 Rating rating = _mapper.Map<Rating>(createDTO);
 
@@ -210,7 +210,7 @@ namespace MSClubInsights.API.Controllers
                 }
 
 
-                var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
 
                 Rating rating = await _ratingService.GetAsync(u => u.Id == id && u.UserId == userId);

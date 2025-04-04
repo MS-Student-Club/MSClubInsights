@@ -163,7 +163,7 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 Comment comment = _mapper.Map<Comment>(createDTO);
 
@@ -226,7 +226,7 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
 
                 }
-                var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 Comment comment = await _commentService.GetAsync(u => u.Id == id && u.UserId == userId);
 
