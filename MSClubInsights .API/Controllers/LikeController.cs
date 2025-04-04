@@ -146,6 +146,8 @@ namespace MSClubInsights_.API.Controllers
 
                 Like like = _mapper.Map<Like>(createDTO);
 
+                like.UserId = userId;
+
                 await _likeService.AddAsync(like);
 
                 return CreatedAtAction(nameof(GetLike), new { id = like.Id }, like);

@@ -222,6 +222,8 @@ namespace MSClubInsights_.API.Controllers
 
                 _mapper.Map(updateDTO, article);
 
+                article.AuthorId = userId;
+
                 await _articleService.UpdateAsync(article);
 
                 _response.StatusCode = HttpStatusCode.NoContent;

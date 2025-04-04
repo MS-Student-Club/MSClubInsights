@@ -148,6 +148,8 @@ namespace MSClubInsights.API.Controllers
 
                 Rating rating = _mapper.Map<Rating>(createDTO);
 
+                rating.UserId = userId;
+
                 await _ratingService.AddAsync(rating);
 
                 return CreatedAtAction(nameof(GetRating), new { id = rating.Id }, rating);
@@ -227,6 +229,8 @@ namespace MSClubInsights.API.Controllers
                 }
 
                _mapper.Map(updateDTO, rating);
+
+               rating.UserId = userId;
 
 
                 await _ratingService.UpdateAsync(rating);

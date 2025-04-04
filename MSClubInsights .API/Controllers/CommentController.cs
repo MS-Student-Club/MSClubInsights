@@ -167,6 +167,8 @@ namespace MSClubInsights.API.Controllers
 
                 Comment comment = _mapper.Map<Comment>(createDTO);
 
+                comment.UserId = userId;
+
                 await _commentService.AddAsync(comment);
 
                 return CreatedAtAction(nameof(GetComment), new { id = comment.Id }, comment);
@@ -242,6 +244,8 @@ namespace MSClubInsights.API.Controllers
                 }
 
                 _mapper.Map(updateDTO, comment);
+
+                comment.UserId = userId;
 
                 await _commentService.UpdateAsync(comment);
 
