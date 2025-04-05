@@ -1,4 +1,5 @@
-﻿using Azure;
+﻿using Asp.Versioning;
+using Azure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using MSClubInsights.Application.ServiceInterfaces;
@@ -7,8 +8,10 @@ using MSClubInsights.Shared.DTOs.Auth;
 namespace MSClubInsights.API.Controllers
 {
     [ApiController]
-    [Route("api/auth")]
+    [Route("api/v{version:apiVersion}/auth")]
     [EnableRateLimiting("Auth")]
+    [ApiVersion("1.0")]
+
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;

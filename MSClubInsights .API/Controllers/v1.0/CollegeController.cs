@@ -1,69 +1,49 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using MSClubInsights.API.Responses;
 using MSClubInsights.Application.ServiceInterfaces;
+using MSClubInsights.Application.Services;
 using MSClubInsights.Domain.Entities;
-using System.Net;
-using MSClubInsights.Shared.DTOs.ArticleTag;
-using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.AspNetCore.Authorization;
+using MSClubInsights.Shared.DTOs.City;
+using MSClubInsights.Shared.DTOs.College;
 using MSClubInsights.Shared.Utitlites;
+using System.Net;
 
-namespace MSClubInsights_.API.Controllers
+namespace MSClubInsights.API.Controllers
 {
-    [Route("api/articletags")]
+    [Route("api/v{version:apiVersion}/colleges")]
     [ApiController]
-    public class ArticleTagController : ControllerBase
+    [ApiVersion("1.0")]
+
+    public class CollegeController : Controller
     {
-        private readonly IArticleTagService _articleTagService;
+        private readonly ICollegeService _collegeService;
         public APIResponse _response;
-        public ArticleTagController(IArticleTagService articleTagService)
+
+        public CollegeController(ICollegeService collegeService)
         {
-            _articleTagService = articleTagService;
+            _collegeService = collegeService;
 
             _response = new();
-
         }
-
-        [HttpGet("{Article_Id:int}")]
+        [HttpGet]
         [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> GetArticleTags(int Article_Id)
+        public async Task<ActionResult<APIResponse>> GetColleges()
         {
             try
             {
-                if (Article_Id <= 0)
-                {
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.IsSuccess = false;
-                    _response.ErrorMessages = new List<string>()
-                    {
-                        "Invalid ID. ID must be greater than zero."
-                    };
-                    return BadRequest(_response);
-                }
-
-                var articleTags = await _articleTagService.GetAllAsync(u => u.ArticleId == Article_Id);
-
-                if (articleTags == null)
-                {
-                    _response.StatusCode = HttpStatusCode.NotFound;
-                    _response.IsSuccess = false;
-                    _response.ErrorMessages = new List<string>()
-                    {
-                        "No Tags found for the given Article ID."
-                    };
-                    return NotFound(_response);
-                }
-
-                _response.Data = articleTags;
+                _response.Data = await _collegeService.GetAllAsync();
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
+
                 return Ok(_response);
+
             }
             catch (Exception ex)
             {
@@ -76,8 +56,10 @@ namespace MSClubInsights_.API.Controllers
                 _response.StatusCode = HttpStatusCode.InternalServerError;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
+
             }
         }
+
 
         [HttpPost]
         [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
@@ -87,7 +69,7 @@ namespace MSClubInsights_.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> CreateArticleTag([FromBody] ArticleTagCreateDTO createDTO)
+        public async Task<ActionResult<APIResponse>> CreateCollege([FromBody] CollegeCreateDTO createDTO)
         {
             try
             {
@@ -95,18 +77,19 @@ namespace MSClubInsights_.API.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "Can't Accept Empty Article - Tag Data" };
+                    _response.ErrorMessages = new List<string> { "Can't Accept Empty College Data" };
                     return BadRequest(_response);
                 }
 
-                var result = await _articleTagService.AddAsync(createDTO);
+
+                var result = await _collegeService.AddAsync(createDTO);
 
                 _response.Data = result;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.Created;
-                _response.ErrorMessages = null;
 
                 return StatusCode(StatusCodes.Status201Created, _response);
+
             }
             catch (Exception ex)
             {
@@ -120,6 +103,88 @@ namespace MSClubInsights_.API.Controllers
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
+        }
+
+        [HttpPut("{id:int}")]
+        [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
+        [EnableRateLimiting("Modify")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<APIResponse>> UpdateCollege(int id, [FromBody] CollegeUpdateDTO updateDTO)
+        {
+            try
+            {
+                if (updateDTO == null)
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+
+                    _response.IsSuccess = false;
+
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "Can't Accept Empty College Data"
+                    };
+
+                    return BadRequest(_response);
+                }
+
+
+                if (id <= 0)
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+
+                    _response.IsSuccess = false;
+
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "Invalid ID. ID must be greater than zero."
+                    };
+
+                    return BadRequest(_response);
+                }
+
+                College college = await _collegeService.GetAsync(u => u.Id == id);
+
+                if (college == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "City not found"
+                    };
+                    return NotFound(_response);
+                }
+
+                await _collegeService.UpdateAsync(id, updateDTO);
+
+                _response.StatusCode = HttpStatusCode.NoContent;
+
+                _response.IsSuccess = true;
+
+                _response.Data = college;
+
+                return Ok(_response);
+
+
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+
+                _response.ErrorMessages = new List<string>()
+                {
+                    ex.Message
+                };
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
+            }
+
         }
 
         [HttpDelete("{id:int}")]
@@ -131,7 +196,7 @@ namespace MSClubInsights_.API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<APIResponse>> DeleteArticleTag(int id)
+        public async Task<ActionResult<APIResponse>> DeleteCollege(int id)
         {
             try
             {
@@ -149,22 +214,24 @@ namespace MSClubInsights_.API.Controllers
                     return BadRequest(_response);
                 }
 
-                ArticleTag articleTag = await _articleTagService.GetAsync(u => u.Id == id);
+                College college = await _collegeService.GetAsync(u => u.Id == id);
 
-                if (articleTag == null)
+                if (college == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
 
                     _response.IsSuccess = false;
+
                     _response.ErrorMessages = new List<string>()
                     {
-                        "Tag Not Found"
+                        "College not found"
                     };
 
                     return NotFound(_response);
                 }
 
-                await _articleTagService.DeleteAsync(articleTag);
+                await _collegeService.DeleteAsync(college);
+
 
                 return NoContent();
             }
@@ -179,10 +246,9 @@ namespace MSClubInsights_.API.Controllers
                 _response.StatusCode = HttpStatusCode.InternalServerError;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
-
             }
-
         }
+
 
     }
 }

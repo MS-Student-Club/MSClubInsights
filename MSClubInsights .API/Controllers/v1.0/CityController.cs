@@ -1,106 +1,43 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using MSClubInsights.API.Responses;
 using MSClubInsights.Application.ServiceInterfaces;
 using MSClubInsights.Domain.Entities;
-using MSClubInsights.Shared.DTOs.Rating;
+using MSClubInsights.Shared.DTOs.City;
+using MSClubInsights.Shared.Utitlites;
 using System.Net;
-using System.Security.Claims;
 
 namespace MSClubInsights.API.Controllers
 {
-    [Route("api/ratings")]
+    [Route("api/v{version:apiVersion}/cities")]
     [ApiController]
-    public class RatingController : ControllerBase
-    {
-        private readonly IRatingService _ratingService;
-        public APIResponse _response;
+    [ApiVersion("1.0")]
 
-        public RatingController(IRatingService ratingService)
+    public class CityController : ControllerBase
+    {
+        private readonly ICityService _citySevice;
+        public APIResponse _response;
+        public CityController(ICityService citySevice)
         {
-            _ratingService = ratingService;
+            _citySevice = citySevice;
 
             _response = new();
+
         }
-        [HttpGet("{Article_Id:int}")]
+
+        [HttpGet]
         [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> GetArticleRatings(int Article_Id)
+        public async Task<ActionResult<APIResponse>> GetCities()
         {
             try
             {
-                var Ratings = await _ratingService.GetAllAsync(u => u.ArticleId == Article_Id);
-                if (Ratings == null)
-                {
-                    _response.StatusCode = HttpStatusCode.NotFound;
-                    _response.IsSuccess = false;
-                    _response.ErrorMessages = new List<string>()
-                    {
-                        "No Ratings Found For This Article"
-                    };
-                    return NotFound(_response);
-                }
-
-                _response.Data = Ratings ;
-                _response.IsSuccess = true;
-                _response.StatusCode = HttpStatusCode.OK;
-
-                return Ok(_response);
-
-            }
-            catch (Exception ex)
-            {
-                _response.IsSuccess = false;
-
-                _response.ErrorMessages = new List<string>()
-                {
-                    ex.Message
-                };
-                _response.StatusCode = HttpStatusCode.InternalServerError;
-
-                return StatusCode(StatusCodes.Status500InternalServerError, _response);
-
-            }
-        }
-
-        [HttpGet("rating/{Rating_Id:int}")]
-        [EnableRateLimiting("Public")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> GetRatingDetails(int Rating_Id)
-        {
-            try
-            {
-                if (Rating_Id <= 0)
-                {
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "Invalid ID. ID must be greater than zero." };
-                    _response.Data = new List<string> { "No Data Retreived" };
-                    return BadRequest(_response);
-                }
-
-                var rating = await _ratingService.GetAsync(u => u.Id == Rating_Id);
-
-                if (rating == null)
-                {
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.NotFound;
-                    _response.ErrorMessages = new List<string> { "No Rating Found " };
-                    return NotFound(_response);
-                }
-
-                _response.Data = rating;
+                _response.Data = await _citySevice.GetAllAsync();
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
 
@@ -123,14 +60,14 @@ namespace MSClubInsights.API.Controllers
         }
 
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
         [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> CreateRating([FromBody] RatingCreateDTO createDTO)
+        public async Task<ActionResult<APIResponse>> CreateCity([FromBody] CityCreateDTO createDTO)
         {
             try
             {
@@ -138,16 +75,19 @@ namespace MSClubInsights.API.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "Can't Accept Empty Rating Data" };
+                    _response.ErrorMessages = new List<string> { "Can't Accept Empty City Data" };
                     return BadRequest(_response);
                 }
 
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+              
+                var result = await _citySevice.AddAsync(createDTO);
 
+                _response.Data = result;
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.Created;
 
-                var result = await _ratingService.AddAsync(createDTO, userId);
+                return StatusCode(StatusCodes.Status201Created, _response);
 
-                return CreatedAtAction(nameof(GetRatingDetails), new { id = result.Id }, result);
             }
             catch (Exception ex)
             {
@@ -164,46 +104,69 @@ namespace MSClubInsights.API.Controllers
         }
 
         [HttpPut("{id:int}")]
-        [Authorize]
+        [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
         [EnableRateLimiting("Modify")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> UpdateRating(int id, [FromBody] RatingUpdateDTO updateDTO)
+        public async Task<ActionResult<APIResponse>> UpdateCity(int id, [FromBody] CityUpdateDTO updateDTO)
         {
             try
             {
-                if (updateDTO == null || id <= 0)
+                if (updateDTO == null)
                 {
                     _response.StatusCode = HttpStatusCode.BadRequest;
+
                     _response.IsSuccess = false;
-                    _response.ErrorMessages = new List<string>();
 
-                    if (updateDTO == null)
-                        _response.ErrorMessages.Add("Can't Accept Empty Rating Data");
-
-                    if (id <= 0)
-                        _response.ErrorMessages.Add("Invalid ID. ID must be greater than zero.");
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "Can't Accept Empty City Data"
+                    };
 
                     return BadRequest(_response);
                 }
 
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                
+                if (id <= 0)
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
 
-                var result = await _ratingService.UpdateAsync(id , userId , updateDTO);
+                    _response.IsSuccess = false;
 
-                _response.StatusCode = HttpStatusCode.OK;
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "Invalid ID. ID must be greater than zero."
+                    };
+
+                    return BadRequest(_response);
+                }
+
+                City city = await _citySevice.GetAsync(u => u.Id == id);
+
+                if (city == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "City not found"
+                    };
+                    return NotFound(_response);
+                }
+
+                await _citySevice.UpdateAsync(id , updateDTO);
+
+                _response.StatusCode = HttpStatusCode.NoContent;
 
                 _response.IsSuccess = true;
 
-                _response.Data = result;
+                _response.Data = city;
 
-                return  Ok(_response);
+                return Ok(_response);
 
 
             }
@@ -218,13 +181,12 @@ namespace MSClubInsights.API.Controllers
                 _response.StatusCode = HttpStatusCode.InternalServerError;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
-
             }
 
         }
 
         [HttpDelete("{id:int}")]
-        [Authorize]
+        [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
         [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -232,7 +194,7 @@ namespace MSClubInsights.API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<APIResponse>> DeleteRating(int id)
+        public async Task<ActionResult<APIResponse>> DeleteCity(int id)
         {
             try
             {
@@ -250,9 +212,9 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                Rating rating = await _ratingService.GetAsync(u => u.Id == id);
+                City city = await _citySevice.GetAsync(u => u.Id == id);
 
-                if (rating == null)
+                if (city == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
 
@@ -260,13 +222,14 @@ namespace MSClubInsights.API.Controllers
 
                     _response.ErrorMessages = new List<string>()
                     {
-                        "No Rating Found"
+                        "City not found"
                     };
 
                     return NotFound(_response);
                 }
 
-                await _ratingService.DeleteAsync(rating);
+                await _citySevice.DeleteAsync(city);
+
 
                 return NoContent();
             }
@@ -281,7 +244,6 @@ namespace MSClubInsights.API.Controllers
                 _response.StatusCode = HttpStatusCode.InternalServerError;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
-
             }
         }
 

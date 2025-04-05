@@ -1,30 +1,35 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using MSClubInsights.API.Responses;
 using MSClubInsights.Application.ServiceInterfaces;
 using MSClubInsights.Domain.Entities;
+using MSClubInsights.Shared.DTOs.Tag;
+using MSClubInsights.Shared.Utitlites;
 using System.Net;
-using MSClubInsights.Shared.DTOs.Like;
-using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 
-
-namespace MSClubInsights_.API.Controllers
+namespace MSClubInsights.API.Controllers
 {
-    [Route("api/likes")]
+    [Route("api/v{version:apiVersion}/tags")]
     [ApiController]
-    public class LikeController : ControllerBase
+    [ApiVersion("1.0")]
+
+    public class TagController : ControllerBase
     {
-        private readonly ILikeService _likeService;
+        private readonly ITagService _tagService;
         public APIResponse _response;
-        public LikeController(ILikeService likeService)
+
+        public TagController(ITagService tagService)
         {
-            _likeService = likeService;
+            _tagService = tagService;
 
             _response = new();
+
         }
 
-        [HttpGet("{Article_Id:int}")]
+        [HttpGet]
+        [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
         [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -32,80 +37,13 @@ namespace MSClubInsights_.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> GetArticleLikeCount(int Article_Id)
+        public async Task<ActionResult<APIResponse>> GetTags()
         {
             try
             {
-                var likes = await _likeService.GetAllAsync(u => u.ArticleId == Article_Id);
-
-                if (likes == null)
-                {
-                    _response.StatusCode = HttpStatusCode.NotFound;
-                    _response.IsSuccess = false;
-                    _response.ErrorMessages = new List<string>()
-                    {
-                        "No Likes Found For This Article"
-                    };
-                    return NotFound(_response);
-                }
-
-                _response.Data = new List<string>()
-                {
-                    likes.Count().ToString()
-                };
+                _response.Data = await _tagService.GetAllAsync();
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
-            }
-            catch (Exception ex)
-            {
-                _response.IsSuccess = false;
-
-                _response.ErrorMessages = new List<string>()
-                {
-                    ex.Message
-                };
-                _response.StatusCode = HttpStatusCode.InternalServerError;
-
-                return StatusCode(StatusCodes.Status500InternalServerError, _response);
-            }
-            return Ok(_response);
-        }
-
-        [HttpGet("like/{like_id:int}")]
-        [EnableRateLimiting("Public")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> GetLikeDetails(int like_id)
-        {
-            try
-            {
-                if(like_id <= 0)
-                {
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages =  new List<string> { "Invalid ID. ID must be greater than zero." };
-                    _response.Data = new List<string> { "No Data Retreived" };
-                    return BadRequest(_response);
-                }
-
-                var like = await _likeService.GetAsync(u => u.Id == like_id);
-
-                if (like == null)
-                {
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.NotFound;
-                    _response.ErrorMessages = new List<string> { "No Like Data Found " };
-                    return NotFound(_response);
-                }
-
-                _response.Data = like;
-                _response.IsSuccess = true;
-                _response.StatusCode = HttpStatusCode.OK;
-
                 return Ok(_response);
 
             }
@@ -115,25 +53,23 @@ namespace MSClubInsights_.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.Message
+                    ex.ToString()
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
-
             }
         }
 
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
         [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> CreateLike([FromBody] LikeCreateDTO createDTO)
+        public async Task<ActionResult<APIResponse>> CreateTag([FromBody] TagCreateDTO createDTO)
         {
             try
             {
@@ -141,17 +77,17 @@ namespace MSClubInsights_.API.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "Can't Accept Empty Like Data" };
+                    _response.ErrorMessages = new List<string> { "Can't Accept Empty Tag Data" };
                     return BadRequest(_response);
                 }
 
+                Tag tag = await _tagService.AddAsync(createDTO);
 
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                _response.Data = tag;
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.Created;
 
-                var result = await _likeService.AddAsync(createDTO , userId);
-
-                return CreatedAtAction(nameof(GetLikeDetails), new { id = result.Id }, result);
-
+                return StatusCode(StatusCodes.Status201Created, _response);
             }
             catch (Exception ex)
             {
@@ -169,9 +105,60 @@ namespace MSClubInsights_.API.Controllers
             }
         }
 
-       
+        [HttpPut("{id:int}")]
+        [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
+        [EnableRateLimiting("Modify")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<APIResponse>> UpdateTag(int id, [FromBody] TagUpdateDTO updateDTO)
+        {
+            try
+            {
+                if (updateDTO == null || id <= 0)
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages = new List<string>();
+
+                    if (updateDTO == null)
+                        _response.ErrorMessages.Add("Can't Accept Empty Tag Data");
+
+                    if (id <= 0)
+                        _response.ErrorMessages.Add("Invalid ID. ID must be greater than zero.");
+
+                    return BadRequest(_response);
+                }
+
+                var result = await _tagService.UpdateAsync(id ,updateDTO);
+
+                _response.StatusCode = HttpStatusCode.OK;
+
+                _response.IsSuccess = true;
+
+                _response.Data = result;
+
+                return Ok( _response);
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+
+                _response.ErrorMessages = new List<string>()
+                {
+                    ex.Message
+                };
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
+            }
+        }
+
         [HttpDelete("{id:int}")]
-        [Authorize]
+        [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
         [EnableRateLimiting("Modify")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -179,11 +166,11 @@ namespace MSClubInsights_.API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<APIResponse>> DeleteArticle(int id)
+        public async Task<ActionResult<APIResponse>> DeleteTag(int id)
         {
             try
             {
-                if(id <= 0)
+                if (id <= 0)
                 {
                     _response.StatusCode = HttpStatusCode.BadRequest;
 
@@ -197,9 +184,9 @@ namespace MSClubInsights_.API.Controllers
                     return BadRequest(_response);
                 }
 
-                Like like = await _likeService.GetAsync(u => u.Id == id);
+                Tag tag = await _tagService.GetAsync(u => u.Id == id);
 
-                if(like == null)
+                if (tag == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
 
@@ -207,17 +194,17 @@ namespace MSClubInsights_.API.Controllers
 
                     _response.ErrorMessages = new List<string>()
                     {
-                        "No Like Data Found"
+                        "Tag Not Found"
                     };
 
                     return NotFound(_response);
                 }
 
-                await _likeService.DeleteAsync(like);
+                await _tagService.DeleteAsync(tag);
 
                 return NoContent();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _response.IsSuccess = false;
 
@@ -226,10 +213,10 @@ namespace MSClubInsights_.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
+
         }
 
     }

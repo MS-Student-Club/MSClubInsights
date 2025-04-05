@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using MSClubInsights.API.Responses;
@@ -10,8 +11,10 @@ using System.Net;
 
 namespace MSClubInsights.API.Controllers
 {
-    [Route("api/univeristies")]
+    [Route("api/v{version:apiVersion}/univeristies")]
     [ApiController]
+    [ApiVersion("1.0")]
+
     public class UniveristyController : Controller
     {
         private readonly IUniveristyService _univeristyService;
@@ -23,6 +26,7 @@ namespace MSClubInsights.API.Controllers
 
             _response = new();
         }
+
         [HttpGet]
         [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
