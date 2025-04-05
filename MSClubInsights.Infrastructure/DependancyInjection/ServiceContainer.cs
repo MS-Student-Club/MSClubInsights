@@ -137,6 +137,8 @@ public static class ServiceContainer
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ICollegeService, CollegeService>();
+        services.AddScoped<IUniveristyService, UniveristyService>();
 
         services.AddScoped<IDBInitializer, DBInitializer.DBInitializer>();
 
