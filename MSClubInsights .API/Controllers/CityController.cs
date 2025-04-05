@@ -7,7 +7,6 @@ using MSClubInsights.Domain.Entities;
 using MSClubInsights.Shared.DTOs.City;
 using MSClubInsights.Shared.Utitlites;
 using System.Net;
-using AutoMapper;
 
 namespace MSClubInsights.API.Controllers
 {
@@ -17,14 +16,12 @@ namespace MSClubInsights.API.Controllers
     {
         private readonly ICityService _citySevice;
         public APIResponse _response;
-        private readonly IMapper _mapper;
-        public CityController(ICityService citySevice , IMapper mapper)
+        public CityController(ICityService citySevice)
         {
             _citySevice = citySevice;
 
             _response = new();
 
-            _mapper = mapper;
         }
 
         [HttpGet]
@@ -79,21 +76,10 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                var existingCity = await _citySevice.GetAsync(u => u.Name.ToLower() == createDTO.Name.ToLower());
+              
+                var result = await _citySevice.AddAsync(createDTO);
 
-                if (existingCity != null)
-                {
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "A City with the same Name already exists." };
-                    return BadRequest(_response);
-                }
-
-                City city = _mapper.Map<City>(createDTO);
-
-                await _citySevice.AddAsync(city);
-
-                _response.Data = city;
+                _response.Data = result;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.Created;
 
@@ -141,16 +127,7 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                var existingCity = await _citySevice.GetAsync(u => u.Name.ToLower() == updateDTO.Name.ToLower());
-
-                if (existingCity != null)
-                {
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "A City with the same Name already exists." };
-                    return BadRequest(_response);
-                }
-
+                
                 if (id <= 0)
                 {
                     _response.StatusCode = HttpStatusCode.BadRequest;
@@ -178,9 +155,7 @@ namespace MSClubInsights.API.Controllers
                     return NotFound(_response);
                 }
 
-                _mapper.Map(updateDTO, city);
-
-                await _citySevice.UpdateAsync(city);
+                await _citySevice.UpdateAsync(id , updateDTO);
 
                 _response.StatusCode = HttpStatusCode.NoContent;
 

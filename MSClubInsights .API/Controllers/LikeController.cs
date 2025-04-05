@@ -7,7 +7,6 @@ using MSClubInsights.Shared.DTOs.Like;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using AutoMapper;
 
 
 namespace MSClubInsights_.API.Controllers
@@ -18,13 +17,11 @@ namespace MSClubInsights_.API.Controllers
     {
         private readonly ILikeService _likeService;
         public APIResponse _response;
-        private readonly IMapper _mapper;
-        public LikeController(ILikeService likeService , IMapper mapper)
+        public LikeController(ILikeService likeService)
         {
             _likeService = likeService;
 
             _response = new();
-            _mapper = mapper;
         }
 
         [HttpGet("{Article_Id:int}")]
@@ -151,24 +148,9 @@ namespace MSClubInsights_.API.Controllers
 
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                var existingLike =
-                    await _likeService.GetAsync(u => u.ArticleId == createDTO.ArticleId && u.UserId == userId);
+                var result = await _likeService.AddAsync(createDTO , userId);
 
-                if (existingLike != null)
-                {
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "A Like Is Already Placed For This Article By This user." };
-                    return BadRequest(_response);
-                }
-
-                Like like = _mapper.Map<Like>(createDTO);
-
-                like.UserId = userId;
-
-                await _likeService.AddAsync(like);
-
-                return CreatedAtAction(nameof(GetLikeDetails), new { id = like.Id }, like);
+                return CreatedAtAction(nameof(GetLikeDetails), new { id = result.Id }, result);
 
             }
             catch (Exception ex)

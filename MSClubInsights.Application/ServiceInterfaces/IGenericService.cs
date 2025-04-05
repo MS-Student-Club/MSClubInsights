@@ -6,9 +6,7 @@ namespace MSClubInsights.Application.ServiceInterfaces
     {
         Task<T> GetAsync(Expression<Func<T, bool>> filter, string? includeProperties = null, bool isTracking = false);
         Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null);
-        Task AddAsync(T entity);
         Task DeleteAsync(T entity);
-
         Task DeleteRangeAsync(IEnumerable<T> entities);
 
     }

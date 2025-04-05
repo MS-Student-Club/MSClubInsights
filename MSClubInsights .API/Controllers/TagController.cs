@@ -7,7 +7,6 @@ using MSClubInsights.Domain.Entities;
 using MSClubInsights.Shared.DTOs.Tag;
 using MSClubInsights.Shared.Utitlites;
 using System.Net;
-using AutoMapper;
 
 namespace MSClubInsights.API.Controllers
 {
@@ -17,14 +16,13 @@ namespace MSClubInsights.API.Controllers
     {
         private readonly ITagService _tagService;
         public APIResponse _response;
-        private readonly IMapper _mapper;
-        public TagController(ITagService tagService , IMapper mapper)
+
+        public TagController(ITagService tagService)
         {
             _tagService = tagService;
 
             _response = new();
 
-            _mapper = mapper;
         }
 
         [HttpGet]
@@ -80,19 +78,7 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                var existingTag = await _tagService.GetAsync(t => t.Name == createDTO.Name);
-
-                if (existingTag != null)
-                {
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "A tag with the same name already exists." };
-                    return BadRequest(_response);
-                }
-
-                Tag tag = _mapper.Map<Tag>(createDTO);
-
-                await _tagService.AddAsync(tag);
+                Tag tag = await _tagService.AddAsync(createDTO);
 
                 _response.Data = tag;
                 _response.IsSuccess = true;
@@ -129,69 +115,30 @@ namespace MSClubInsights.API.Controllers
         {
             try
             {
-                if (updateDTO == null)
+                if (updateDTO == null || id <= 0)
                 {
                     _response.StatusCode = HttpStatusCode.BadRequest;
-
                     _response.IsSuccess = false;
+                    _response.ErrorMessages = new List<string>();
 
-                    _response.ErrorMessages = new List<string>()
-                    {
-                        "Can't Accept Empty Tag Data"
-                    };
+                    if (updateDTO == null)
+                        _response.ErrorMessages.Add("Can't Accept Empty Tag Data");
+
+                    if (id <= 0)
+                        _response.ErrorMessages.Add("Invalid ID. ID must be greater than zero.");
 
                     return BadRequest(_response);
                 }
 
-                var existingTag = await _tagService.GetAsync(t => t.Name == updateDTO.Name);
-
-                if (existingTag != null)
-                {
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "A tag with the same name already exists." };
-                    return BadRequest(_response);
-                }
-
-                if (id <= 0)
-                {
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-
-                    _response.IsSuccess = false;
-
-                    _response.ErrorMessages = new List<string>()
-                    {
-                        "Invalid ID. ID must be greater than zero."
-                    };
-                    return BadRequest(_response);
-                }
-
-                Tag tag = await _tagService.GetAsync(u => u.Id == id);
-
-                if (tag == null)
-                {
-                    _response.StatusCode = HttpStatusCode.NotFound;
-                    _response.IsSuccess = false;
-                    _response.ErrorMessages = new List<string>()
-                    {
-                        "Tag not found"
-                    };
-                    return NotFound(_response);
-                }
-
-                _mapper.Map(updateDTO, tag);
-
-                await _tagService.UpdateAsync(tag);
+                var result = await _tagService.UpdateAsync(id ,updateDTO);
 
                 _response.StatusCode = HttpStatusCode.OK;
 
                 _response.IsSuccess = true;
 
-                _response.Data = tag;
+                _response.Data = result;
 
                 return Ok( _response);
-
-
             }
             catch (Exception ex)
             {
