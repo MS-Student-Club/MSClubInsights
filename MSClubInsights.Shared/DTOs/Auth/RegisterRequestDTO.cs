@@ -18,5 +18,9 @@ namespace MSClubInsights.Shared.DTOs.Auth
         public bool gender { get; set; }
 
         public int CityId { get; set; }
+
+        public int CollegeId { get; set; }
+
+        public int UniverseId { get; set; }
     }
 }

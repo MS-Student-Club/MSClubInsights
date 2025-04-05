@@ -29,6 +29,8 @@ namespace MSClubInsights.Application.Services
                gender = request.gender,
                DateOfBirth = request.DateOfBirth,
                PhoneNumber = request.PhoneNumber,
+               collegeId = request.CollegeId,
+               univeristyId = request.UniverseId,
            };
 
             var result = await _userRepository.CreateUser(user, request.Password);
