@@ -29,5 +29,9 @@ public class AppDbContext : IdentityDbContext<AppUser> // Adding Identity Tables
 
     public DbSet<Like> likes { get; set; }
 
+    public DbSet<Univeristy> Univeristy { get; set; }
+
+    public DbSet<College> College { get; set; }
+
    
 }

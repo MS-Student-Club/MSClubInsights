@@ -50,6 +50,15 @@ namespace MSClubInsights.Infrastructure.DBInitializer
                 _db.tags.AddRange(new Tag { Name = "PyTorch" },
                     new Tag { Name = "C#" });
 
+                _db.College.AddRange(
+                    new College { Name = "Faculty of Computer Science"},
+                    new College { Name = "Faculty of Engineering" }
+                    );
+
+                _db.Univeristy.AddRange(
+                    new Univeristy { Name = "Suez Canal Univeristy"}
+                    );
+
                 _db.SaveChanges();
 
 
@@ -63,6 +72,8 @@ namespace MSClubInsights.Infrastructure.DBInitializer
                     CityId = 1,
                     EmailConfirmed = true,
                     DateOfBirth = DateOnly.Parse("1990-07-15"),
+                    collegeId = 1,
+                    univeristyId = 1,
                 }, "Admin@123").GetAwaiter().GetResult();
 
                 AppUser user = _db.users.FirstOrDefault(u => u.Email == "admin@Microsoft.com");
