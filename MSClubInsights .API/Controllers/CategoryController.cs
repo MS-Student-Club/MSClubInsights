@@ -7,7 +7,6 @@ using MSClubInsights.Domain.Entities;
 using MSClubInsights.Shared.DTOs.Category;
 using MSClubInsights.Shared.Utitlites;
 using System.Net;
-using AutoMapper;
 
 namespace MSClubInsights.API.Controllers
 {
@@ -17,15 +16,13 @@ namespace MSClubInsights.API.Controllers
     {
         private readonly ICategoryService _categoryService;
         public APIResponse _response;
-        private readonly IMapper _mapper;
 
-        public CategoryController(ICategoryService categoryService , IMapper mapper)
+        public CategoryController(ICategoryService categoryService)
         {
             _categoryService = categoryService;
 
             _response = new();
 
-            _mapper = mapper;
         }
 
         [HttpGet]
@@ -79,21 +76,10 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                var existingCategory = await _categoryService.GetAsync(u => u.Name.ToLower() == createDTO.Name.ToLower());
 
-                if (existingCategory != null)
-                {
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "A Category with the same Name already exists." };
-                    return BadRequest(_response);
-                }
+               var result = await _categoryService.AddAsync(createDTO);
 
-                Category category = _mapper.Map<Category>(createDTO);
-
-                await _categoryService.AddAsync(category);
-
-                _response.Data = category;
+                _response.Data = result;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.Created;
                 return StatusCode(StatusCodes.Status201Created, _response);
@@ -140,15 +126,7 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                var existingCategory = await _categoryService.GetAsync(u => u.Name.ToLower() == updateDTO.Name.ToLower());
 
-                if (existingCategory != null)
-                {
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "A Category with the same Name already exists." };
-                    return BadRequest(_response);
-                }
 
                 if (id <= 0)
                 {
@@ -164,28 +142,13 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                Category category = await _categoryService.GetAsync(u => u.Id == id);
-
-                if (category == null)
-                {
-                    _response.StatusCode = HttpStatusCode.NotFound;
-                    _response.IsSuccess = false;
-                    _response.ErrorMessages = new List<string>()
-                    {
-                        "Category not found"
-                    };
-                    return NotFound(_response);
-                }
-
-                _mapper.Map(updateDTO, category);
-
-                await _categoryService.UpdateAsync(category);
+                var result = await _categoryService.UpdateAsync(id ,updateDTO);
 
                 _response.StatusCode = HttpStatusCode.NoContent;
 
                 _response.IsSuccess = true;
 
-                _response.Data = category;
+                _response.Data = result;
 
                 return Ok(_response);
 

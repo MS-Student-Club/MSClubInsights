@@ -3,7 +3,6 @@ using MSClubInsights.API.Responses;
 using MSClubInsights.Application.ServiceInterfaces;
 using MSClubInsights.Domain.Entities;
 using System.Net;
-using AutoMapper;
 using MSClubInsights.Shared.DTOs.ArticleTag;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
@@ -17,14 +16,12 @@ namespace MSClubInsights_.API.Controllers
     {
         private readonly IArticleTagService _articleTagService;
         public APIResponse _response;
-        private readonly IMapper _mapper;
-        public ArticleTagController(IArticleTagService articleTagService , IMapper mapper)
+        public ArticleTagController(IArticleTagService articleTagService)
         {
             _articleTagService = articleTagService;
 
             _response = new();
 
-            _mapper = mapper;
         }
 
         [HttpGet("{Article_Id:int}")]
@@ -102,22 +99,9 @@ namespace MSClubInsights_.API.Controllers
                     return BadRequest(_response);
                 }
 
-                var existingArticleTag =
-                    await _articleTagService.GetAsync(u => u.ArticleId == createDTO.ArticleId && u.TagId == createDTO.TagId);
+                var result = await _articleTagService.AddAsync(createDTO);
 
-                if (existingArticleTag != null)
-                {
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "This Tag Is Already Placed For This Article" };
-                    return BadRequest(_response);
-                }
-
-                ArticleTag articleTag = _mapper.Map<ArticleTag>(createDTO);
-
-                await _articleTagService.AddAsync(articleTag);
-
-                _response.Data = articleTag;
+                _response.Data = result;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.Created;
                 _response.ErrorMessages = null;

@@ -4,7 +4,6 @@ using MSClubInsights.Application.ServiceInterfaces;
 using MSClubInsights.Domain.Entities;
 using System.Net;
 using System.Security.Claims;
-using AutoMapper;
 using MSClubInsights.Shared.DTOs.Article;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
@@ -18,15 +17,11 @@ namespace MSClubInsights_.API.Controllers
     {
         private readonly IArticleService _articleService;
         public APIResponse _response;
-        private readonly IMapper _mapper;
-        public ArticleController(IArticleService articleService , IMapper mapper)
+        public ArticleController(IArticleService articleService)
         {
             _articleService = articleService;
 
             _response = new();
-
-            _mapper = mapper;
-
         }
 
         [HttpGet]
@@ -128,25 +123,11 @@ namespace MSClubInsights_.API.Controllers
                     return BadRequest(_response);
                 }
 
-                var existingArticle = await _articleService.GetAsync(u => u.Title.ToLower() == createDTO.Title.ToLower());
-
-                if (existingArticle != null)
-                {
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "An Article with the same Title already exists." };
-                    return BadRequest(_response);
-                }
-
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                Article article = _mapper.Map<Article>(createDTO);
+                var result = await _articleService.AddAsync(createDTO , userId);
 
-                article.AuthorId = userId;
-
-                await _articleService.AddAsync(article);
-
-                return CreatedAtAction(nameof(GetArticleDetails), new { id = article.Id }, article);
+                return CreatedAtAction(nameof(GetArticleDetails), new { id = result.Id }, result);
             }
             catch (Exception ex)
             {
@@ -202,43 +183,17 @@ namespace MSClubInsights_.API.Controllers
                     return BadRequest(_response);
                 }
 
-                var existingArticle = await _articleService.GetAsync(u => u.Title.ToLower() == updateDTO.Title.ToLower());
-
-                if (existingArticle != null)
-                {
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "An Article with the same Title already exists." };
-                    return BadRequest(_response);
-                }
-
+               
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                 
 
-
-                Article article = await _articleService.GetAsync(u => u.Id == id);
-
-                if (article == null)
-                {
-                    _response.StatusCode = HttpStatusCode.NotFound;
-                    _response.IsSuccess = false;
-                    _response.ErrorMessages = new List<string>()
-                    {
-                        "No Article Found"
-                    };
-                    return NotFound(_response);
-                }
-
-                _mapper.Map(updateDTO, article);
-
-                article.AuthorId = userId;
-
-                await _articleService.UpdateAsync(article);
+                var result = await _articleService.UpdateAsync(id , userId, updateDTO);
 
                 _response.StatusCode = HttpStatusCode.NoContent;
 
                 _response.IsSuccess = true;
 
-                _response.Data = article;
+                _response.Data = result;
 
                 return  Ok(_response);
 

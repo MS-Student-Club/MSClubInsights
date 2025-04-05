@@ -7,7 +7,6 @@ using MSClubInsights.Domain.Entities;
 using MSClubInsights.Shared.DTOs.Comment;
 using System.Net;
 using System.Security.Claims;
-using AutoMapper;
 
 namespace MSClubInsights.API.Controllers
 {
@@ -17,14 +16,12 @@ namespace MSClubInsights.API.Controllers
     {
         private readonly ICommentService _commentService;
         public APIResponse _response;
-        private readonly IMapper _mapper;
-        public CommentController(ICommentService commentService , IMapper mapper)
+        public CommentController(ICommentService commentService)
         {
             _commentService = commentService;
 
             _response = new();
 
-            _mapper = mapper;
         }
 
         [HttpGet("article/{Article_Id:int}", Name = "GetArticleComments")]
@@ -155,13 +152,9 @@ namespace MSClubInsights.API.Controllers
 
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                Comment comment = _mapper.Map<Comment>(createDTO);
+                var result = await _commentService.AddAsync(createDTO , userId);
 
-                comment.UserId = userId;
-
-                await _commentService.AddAsync(comment);
-
-                return CreatedAtAction(nameof(GetCommentDetails), new { id = comment.Id }, comment);
+                return CreatedAtAction(nameof(GetCommentDetails), new { id = result.Id }, result);
             }
             catch (Exception ex)
             {
@@ -220,30 +213,13 @@ namespace MSClubInsights.API.Controllers
                 }
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                Comment comment = await _commentService.GetAsync(u => u.Id == id && u.UserId == userId);
-
-                if (comment == null)
-                {
-                    _response.StatusCode = HttpStatusCode.NotFound;
-                    _response.IsSuccess = false;
-                    _response.ErrorMessages = new List<string>()
-                    {
-                        "No Comment Found"
-                    };
-                    return NotFound(_response);
-                }
-
-                _mapper.Map(updateDTO, comment);
-
-                comment.UserId = userId;
-
-                await _commentService.UpdateAsync(comment);
+                var result = await _commentService.UpdateAsync(id , userId , updateDTO);
 
                 _response.StatusCode = HttpStatusCode.OK;
 
                 _response.IsSuccess = true;
 
-                _response.Data = comment;
+                _response.Data = result;
 
                 return Ok(_response);
 

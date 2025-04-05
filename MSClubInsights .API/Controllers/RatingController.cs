@@ -7,7 +7,6 @@ using MSClubInsights.Domain.Entities;
 using MSClubInsights.Shared.DTOs.Rating;
 using System.Net;
 using System.Security.Claims;
-using AutoMapper;
 
 namespace MSClubInsights.API.Controllers
 {
@@ -17,17 +16,13 @@ namespace MSClubInsights.API.Controllers
     {
         private readonly IRatingService _ratingService;
         public APIResponse _response;
-        private readonly IMapper _mapper;
 
-        public RatingController(IRatingService ratingService , IMapper mapper)
+        public RatingController(IRatingService ratingService)
         {
             _ratingService = ratingService;
 
             _response = new();
-
-            _mapper = mapper;
         }
-
         [HttpGet("{Article_Id:int}")]
         [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -149,24 +144,10 @@ namespace MSClubInsights.API.Controllers
 
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                var existingRating = await _ratingService.GetAsync(u => u.UserId == userId);
 
-                if (existingRating != null)
-                {
-                    _response.IsSuccess = false;
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "A Rating Is Already Made For This Article By This user." };
-                    return BadRequest(_response);
-                }
+                var result = await _ratingService.AddAsync(createDTO, userId);
 
-
-                Rating rating = _mapper.Map<Rating>(createDTO);
-
-                rating.UserId = userId;
-
-                await _ratingService.AddAsync(rating);
-
-                return CreatedAtAction(nameof(GetRatingDetails), new { id = rating.Id }, rating);
+                return CreatedAtAction(nameof(GetRatingDetails), new { id = result.Id }, result);
             }
             catch (Exception ex)
             {
@@ -197,62 +178,30 @@ namespace MSClubInsights.API.Controllers
         {
             try
             {
-                if (updateDTO == null)
+                if (updateDTO == null || id <= 0)
                 {
                     _response.StatusCode = HttpStatusCode.BadRequest;
-
                     _response.IsSuccess = false;
+                    _response.ErrorMessages = new List<string>();
 
-                    _response.ErrorMessages = new List<string>()
-                    {
-                        "Can't Accept Empty Rating Data"
-                    };
+                    if (updateDTO == null)
+                        _response.ErrorMessages.Add("Can't Accept Empty Rating Data");
+
+                    if (id <= 0)
+                        _response.ErrorMessages.Add("Invalid ID. ID must be greater than zero.");
 
                     return BadRequest(_response);
                 }
-
-                if (id <= 0)
-                {
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-
-                    _response.IsSuccess = false;
-
-                    _response.ErrorMessages = new List<string>()
-                    {
-                        "Invalid ID. ID must be greater than zero."
-                    };
-                    return BadRequest(_response);
-                }
-
 
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-             
-                Rating rating = await _ratingService.GetAsync(u => u.Id == id && u.UserId == userId);
-
-                if (rating == null)
-                {
-                    _response.StatusCode = HttpStatusCode.NotFound;
-                    _response.IsSuccess = false;
-                    _response.ErrorMessages = new List<string>()
-                    {
-                        "No Rating Found"
-                    };
-                    return NotFound(_response);
-                }
-
-               _mapper.Map(updateDTO, rating);
-
-               rating.UserId = userId;
-
-
-                await _ratingService.UpdateAsync(rating);
+                var result = await _ratingService.UpdateAsync(id , userId , updateDTO);
 
                 _response.StatusCode = HttpStatusCode.OK;
 
                 _response.IsSuccess = true;
 
-                _response.Data = rating;
+                _response.Data = result;
 
                 return  Ok(_response);
 
