@@ -13,6 +13,4 @@ namespace MSClubInsights.Application.ServiceInterfaces
         Task<Univeristy> AddAsync(UniversityCreateDTO createDTO);
         Task<Univeristy> UpdateAsync(int id, UniveristyUpdateDTO updateDTO);
     }
-    {
-    }
 }
