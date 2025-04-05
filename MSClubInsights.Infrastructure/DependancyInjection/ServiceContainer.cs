@@ -123,6 +123,8 @@ public static class ServiceContainer
         services.AddScoped<ILikeRepository, LikeRepository>();
         services.AddScoped<IRatingRepository, RatingRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ICollegeRepository, CollegeRepository>();
+        services.AddScoped<IUniveristyRepository, UniveristyRepository>();
 
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<ITagService, TagService>();
