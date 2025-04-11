@@ -31,6 +31,14 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v.1.0 "
     });
 
+    options.SwaggerDoc("v1.1", new OpenApiInfo
+    {
+        Title = "MS Club Insights API v1.1",
+        Description = "Minor update with new endpoints and fixes.",
+        Version = "v1.1"
+    });
+
+
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n" +
@@ -79,6 +87,7 @@ app.UseSwaggerUI(o => {
     o.HeadContent = "<style>.swagger-ui .topbar { background-color: #5298DF; }</style>"; // Changes the header color
     o.InjectStylesheet("/swagger-custom.css"); // Inject custom CSS
     o.SwaggerEndpoint("/swagger/v1/swagger.json", "MS Club Insights API v1");
+    o.SwaggerEndpoint("/swagger/v1.1/swagger.json", "MS Club API v1.1");
     o.RoutePrefix = string.Empty;
 });
 

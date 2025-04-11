@@ -11,7 +11,7 @@ using MSClubInsights.Shared.DTOs.College;
 using MSClubInsights.Shared.Utitlites;
 using System.Net;
 
-namespace MSClubInsights.API.Controllers
+namespace MSClubInsights.API.Controllers.v1_0
 {
     [Route("api/v{version:apiVersion}/colleges")]
     [ApiController]

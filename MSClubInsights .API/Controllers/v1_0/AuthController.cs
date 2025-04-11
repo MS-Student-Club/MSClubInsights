@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using MSClubInsights.Application.ServiceInterfaces;
 using MSClubInsights.Shared.DTOs.Auth;
 
-namespace MSClubInsights.API.Controllers
+namespace MSClubInsights.API.Controllers.v1_0
 {
     [ApiController]
     [Route("api/v{version:apiVersion}/auth")]

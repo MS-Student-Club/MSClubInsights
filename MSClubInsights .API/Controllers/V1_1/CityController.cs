@@ -5,45 +5,42 @@ using Microsoft.AspNetCore.RateLimiting;
 using MSClubInsights.API.Responses;
 using MSClubInsights.Application.ServiceInterfaces;
 using MSClubInsights.Domain.Entities;
-using MSClubInsights.Shared.DTOs.Tag;
+using MSClubInsights.Shared.DTOs.City;
 using MSClubInsights.Shared.Utitlites;
 using System.Net;
 
-namespace MSClubInsights.API.Controllers
+namespace MSClubInsights.API.Controllers.v1_1
 {
-    [Route("api/v{version:apiVersion}/tags")]
+    [Route("api/v{version:apiVersion}/cities")]
     [ApiController]
-    [ApiVersion("1.0")]
+    [ApiVersion("1.1")]
 
-    public class TagController : ControllerBase
+    public class CityController : ControllerBase
     {
-        private readonly ITagService _tagService;
+        private readonly ICityService _citySevice;
         public APIResponse _response;
-
-        public TagController(ITagService tagService)
+        public CityController(ICityService citySevice)
         {
-            _tagService = tagService;
+            _citySevice = citySevice;
 
             _response = new();
 
         }
 
         [HttpGet]
-        [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
         [EnableRateLimiting("Public")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> GetTags()
+        public async Task<ActionResult<APIResponse>> GetCities()
         {
             try
             {
-                _response.Data = await _tagService.GetAllAsync();
+                _response.Data = await _citySevice.GetAllAsync();
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
+
                 return Ok(_response);
 
             }
@@ -53,11 +50,12 @@ namespace MSClubInsights.API.Controllers
 
                 _response.ErrorMessages = new List<string>()
                 {
-                    ex.ToString()
+                    ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
+
             }
         }
 
@@ -69,7 +67,7 @@ namespace MSClubInsights.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> CreateTag([FromBody] TagCreateDTO createDTO)
+        public async Task<ActionResult<APIResponse>> CreateCity([FromBody] CityCreateDTO createDTO)
         {
             try
             {
@@ -77,17 +75,19 @@ namespace MSClubInsights.API.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "Can't Accept Empty Tag Data" };
+                    _response.ErrorMessages = new List<string> { "Can't Accept Empty City Data" };
                     return BadRequest(_response);
                 }
 
-                Tag tag = await _tagService.AddAsync(createDTO);
+              
+                var result = await _citySevice.AddAsync(createDTO);
 
-                _response.Data = tag;
+                _response.Data = result;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.Created;
 
                 return StatusCode(StatusCodes.Status201Created, _response);
+
             }
             catch (Exception ex)
             {
@@ -98,10 +98,8 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.Data = null;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
-
             }
         }
 
@@ -114,34 +112,63 @@ namespace MSClubInsights.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> UpdateTag(int id, [FromBody] TagUpdateDTO updateDTO)
+        public async Task<ActionResult<APIResponse>> UpdateCity(int id, [FromBody] CityUpdateDTO updateDTO)
         {
             try
             {
-                if (updateDTO == null || id <= 0)
+                if (updateDTO == null)
                 {
                     _response.StatusCode = HttpStatusCode.BadRequest;
+
                     _response.IsSuccess = false;
-                    _response.ErrorMessages = new List<string>();
 
-                    if (updateDTO == null)
-                        _response.ErrorMessages.Add("Can't Accept Empty Tag Data");
-
-                    if (id <= 0)
-                        _response.ErrorMessages.Add("Invalid ID. ID must be greater than zero.");
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "Can't Accept Empty City Data"
+                    };
 
                     return BadRequest(_response);
                 }
 
-                var result = await _tagService.UpdateAsync(id ,updateDTO);
+                
+                if (id <= 0)
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
 
-                _response.StatusCode = HttpStatusCode.OK;
+                    _response.IsSuccess = false;
+
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "Invalid ID. ID must be greater than zero."
+                    };
+
+                    return BadRequest(_response);
+                }
+
+                City city = await _citySevice.GetAsync(u => u.Id == id);
+
+                if (city == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages = new List<string>()
+                    {
+                        "City not found"
+                    };
+                    return NotFound(_response);
+                }
+
+                await _citySevice.UpdateAsync(id , updateDTO);
+
+                _response.StatusCode = HttpStatusCode.NoContent;
 
                 _response.IsSuccess = true;
 
-                _response.Data = result;
+                _response.Data = city;
 
-                return Ok( _response);
+                return Ok(_response);
+
+
             }
             catch (Exception ex)
             {
@@ -155,6 +182,7 @@ namespace MSClubInsights.API.Controllers
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
+
         }
 
         [HttpDelete("{id:int}")]
@@ -166,7 +194,7 @@ namespace MSClubInsights.API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<APIResponse>> DeleteTag(int id)
+        public async Task<ActionResult<APIResponse>> DeleteCity(int id)
         {
             try
             {
@@ -184,9 +212,9 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                Tag tag = await _tagService.GetAsync(u => u.Id == id);
+                City city = await _citySevice.GetAsync(u => u.Id == id);
 
-                if (tag == null)
+                if (city == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
 
@@ -194,13 +222,14 @@ namespace MSClubInsights.API.Controllers
 
                     _response.ErrorMessages = new List<string>()
                     {
-                        "Tag Not Found"
+                        "City not found"
                     };
 
                     return NotFound(_response);
                 }
 
-                await _tagService.DeleteAsync(tag);
+                await _citySevice.DeleteAsync(city);
+
 
                 return NoContent();
             }
@@ -216,7 +245,6 @@ namespace MSClubInsights.API.Controllers
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
-
         }
 
     }

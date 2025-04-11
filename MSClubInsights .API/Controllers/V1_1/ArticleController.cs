@@ -1,30 +1,29 @@
-﻿using Asp.Versioning;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
+﻿using Microsoft.AspNetCore.Mvc;
 using MSClubInsights.API.Responses;
 using MSClubInsights.Application.ServiceInterfaces;
 using MSClubInsights.Domain.Entities;
-using MSClubInsights.Shared.DTOs.Category;
-using MSClubInsights.Shared.Utitlites;
 using System.Net;
+using System.Security.Claims;
+using MSClubInsights.Shared.DTOs.Article;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Authorization;
+using MSClubInsights.Shared.Utitlites;
+using Asp.Versioning;
 
-namespace MSClubInsights.API.Controllers
+namespace MSClubInsights_.API.Controllers.v1_1
 {
-    [Route("api/categories")]
-    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/articles")]
     [ApiController]
-    public class CategoryController : ControllerBase
+    [ApiVersion("1.1")]
+    public class ArticleController : ControllerBase
     {
-        private readonly ICategoryService _categoryService;
+        private readonly IArticleService _articleService;
         public APIResponse _response;
-
-        public CategoryController(ICategoryService categoryService)
+        public ArticleController(IArticleService articleService)
         {
-            _categoryService = categoryService;
+            _articleService = articleService;
 
             _response = new();
-
         }
 
         [HttpGet]
@@ -33,11 +32,62 @@ namespace MSClubInsights.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> GetCategories()
+        public async Task<ActionResult<APIResponse>> GetArticles()
         {
             try
             {
-                _response.Data = await _categoryService.GetAllAsync();
+                _response.IsSuccess = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.Data = await _articleService.GetAllAsync();
+                return Ok(_response);
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+
+                _response.ErrorMessages = new List<string>()
+                {
+                    ex.Message
+                };
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+
+                return StatusCode(StatusCodes.Status500InternalServerError, _response);
+            }
+            
+        }
+
+        [HttpGet("{id:int}")]
+        [EnableRateLimiting("Public")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<APIResponse>> GetArticleDetails(int id)
+        {
+            try
+            {
+                if(id <= 0)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.ErrorMessages =  new List<string> { "Invalid ID. ID must be greater than zero." };
+                    _response.Data = new List<string> { "No Data Retrieved" };
+                    return BadRequest(_response);
+                }
+
+                var article = await _articleService.GetAsync(u => u.Id == id);
+
+                if (article == null)
+                {
+                    _response.IsSuccess = false;
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.ErrorMessages = new List<string> { "No Article Found " };
+                    return NotFound(_response);
+                }
+
+                _response.Data = article;
                 _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
                 return Ok(_response);
@@ -51,12 +101,9 @@ namespace MSClubInsights.API.Controllers
                     ex.Message
                 };
                 _response.StatusCode = HttpStatusCode.InternalServerError;
-
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
-
             }
         }
-
 
         [HttpPost]
         [Authorize(Roles = SD.TechMember + "," + SD.SysAdmin + "," + SD.CoreTeam)]
@@ -66,7 +113,7 @@ namespace MSClubInsights.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> CreateCategory([FromBody] CategoryCreateDTO createDTO)
+        public async Task<ActionResult<APIResponse>> CreateArticle([FromBody] ArticleCreateDTO createDTO)
         {
             try
             {
@@ -74,17 +121,15 @@ namespace MSClubInsights.API.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.ErrorMessages = new List<string> { "Can't Accept Empty Category Data" };
+                    _response.ErrorMessages = new List<string> { "Can't Accept Empty Article Data" };
                     return BadRequest(_response);
                 }
 
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-               var result = await _categoryService.AddAsync(createDTO);
+                var result = await _articleService.AddAsync(createDTO , userId);
 
-                _response.Data = result;
-                _response.IsSuccess = true;
-                _response.StatusCode = HttpStatusCode.Created;
-                return StatusCode(StatusCodes.Status201Created, _response);
+                return CreatedAtAction(nameof(GetArticleDetails), new { id = result.Id }, result);
             }
             catch (Exception ex)
             {
@@ -97,7 +142,6 @@ namespace MSClubInsights.API.Controllers
                 _response.StatusCode = HttpStatusCode.InternalServerError;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
-
             }
         }
 
@@ -110,11 +154,11 @@ namespace MSClubInsights.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<APIResponse>> UpdateCategory(int id, [FromBody] CategoryUpdateDTO updateDTO)
+        public async Task<ActionResult<APIResponse>> UpdateArticle(int id , [FromBody] ArticleUpdateDTO updateDTO)
         {
             try
             {
-                if (updateDTO == null)
+                if(updateDTO == null)
                 {
                     _response.StatusCode = HttpStatusCode.BadRequest;
 
@@ -122,15 +166,13 @@ namespace MSClubInsights.API.Controllers
 
                     _response.ErrorMessages = new List<string>()
                     {
-                        "Can't Accept Empty Category Data"
+                        "Can't Accept Empty Article Data"
                     };
 
                     return BadRequest(_response);
                 }
 
-
-
-                if (id <= 0)
+                if(id <= 0)
                 {
                     _response.StatusCode = HttpStatusCode.BadRequest;
 
@@ -140,11 +182,14 @@ namespace MSClubInsights.API.Controllers
                     {
                         "Invalid ID. ID must be greater than zero."
                     };
-
                     return BadRequest(_response);
                 }
 
-                var result = await _categoryService.UpdateAsync(id ,updateDTO);
+               
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                 
+
+                var result = await _articleService.UpdateAsync(id , userId, updateDTO);
 
                 _response.StatusCode = HttpStatusCode.NoContent;
 
@@ -152,7 +197,7 @@ namespace MSClubInsights.API.Controllers
 
                 _response.Data = result;
 
-                return Ok(_response);
+                return  Ok(_response);
 
 
             }
@@ -168,6 +213,7 @@ namespace MSClubInsights.API.Controllers
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
+
         }
 
         [HttpDelete("{id:int}")]
@@ -179,11 +225,11 @@ namespace MSClubInsights.API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<APIResponse>> DeleteCategory(int id)
+        public async Task<ActionResult<APIResponse>> DeleteArticle(int id)
         {
             try
             {
-                if (id <= 0)
+                if(id <= 0)
                 {
                     _response.StatusCode = HttpStatusCode.BadRequest;
 
@@ -197,9 +243,9 @@ namespace MSClubInsights.API.Controllers
                     return BadRequest(_response);
                 }
 
-                Category category = await _categoryService.GetAsync(u => u.Id == id);
+                Article article = await _articleService.GetAsync(u => u.Id == id);
 
-                if (category == null)
+                if(article == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
 
@@ -208,11 +254,11 @@ namespace MSClubInsights.API.Controllers
                     return NotFound(_response);
                 }
 
-                await _categoryService.DeleteAsync(category);
+                await _articleService.DeleteAsync(article);
 
                 return NoContent();
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 _response.IsSuccess = false;
 
@@ -223,8 +269,8 @@ namespace MSClubInsights.API.Controllers
                 _response.StatusCode = HttpStatusCode.InternalServerError;
 
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
-
             }
+
 
         }
 
